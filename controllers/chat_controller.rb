@@ -86,7 +86,7 @@ class ChatController
       return handle_command(message, driver, chat_room, username)
     else
       chat_room.broadcast_message(message, username)
-      return nil # Pas de changement de salle
+      return nil
     end
   end
 
@@ -305,8 +305,6 @@ class ChatController
         return nil
       end
 
-      # Au lieu d'envoyer du HTML brut, nous envoyons une structure plus simple
-      # qui sera interprétée correctement par le client
       formatted_message = "IMAGE_SPECIAL|#{image_url}"
       chat_room.broadcast_image(image_url, username)
 
@@ -412,7 +410,9 @@ class ChatController
 
         chat_room.remove_client(username)
 
-        chat_room.add_client(driver, username)
+        chat_room.add_client(driver, new_pseudo)
+
+        driver.instance_variable_set(:@username, new_pseudo)
 
         if username.is_a?(String) && username.respond_to?(:replace)
           username.replace(new_pseudo)
@@ -520,7 +520,7 @@ class ChatController
       db.close
       return true
     rescue => ex
-      puts "| 🔴 Erreur lors de la sauvegarde des préférences: #{ex.message}"
+      puts "| ⚫️ Erreur lors de la sauvegarde des préférences: #{ex.message}"
       return false
     end
   end

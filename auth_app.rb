@@ -3,6 +3,8 @@ require 'sqlite3'
 require 'bcrypt'
 require 'fileutils'
 require 'json'
+require 'uri'
+require 'securerandom'
 
 set :bind, '0.0.0.0'
 set :port, 4567
@@ -50,12 +52,55 @@ puts "Dossier d'upload créé: public/uploads"
 
 begin
   FileUtils.chmod(0755, 'public/uploads')
-  puts "Permissions du dossier d'upload mises à jour: 755"
+  puts "Permissions du dossier d'upload mises à jour 755"
 rescue => e
-  puts "Avertissement: impossible de modifier les permissions du dossier: #{e.message}"
+  puts "Avertissement impossible de modifier les permissions du dossier: #{e.message}"
 end
 
 set :public_folder, File.dirname(__FILE__) + '/public'
+
+def sanitize_filename(filename)
+  extension = File.extname(filename)
+  basename = File.basename(filename, extension)
+
+  uuid = SecureRandom.uuid
+
+  sanitized_basename = basename.gsub(/[^\p{Alnum}\p{L}\-_]/, '_')
+
+  sanitized_basename = sanitized_basename[0, 100] if sanitized_basename.length > 100
+
+  timestamp = Time.now.to_i
+
+  "#{timestamp}_#{uuid}#{extension}"
+
+
+end
+
+def detect_mime_type(file_path)
+  extension = File.extname(file_path).downcase
+  case extension
+  when '.jpg', '.jpeg'
+    'image/jpeg'
+  when '.png'
+    'image/png'
+  when '.gif'
+    'image/gif'
+  when '.pdf'
+    'application/pdf'
+  when '.doc', '.docx'
+    'application/msword'
+  when '.xls', '.xlsx'
+    'application/vnd.ms-excel'
+  when '.zip'
+    'application/zip'
+  when '.mp3'
+    'audio/mpeg'
+  when '.mp4'
+    'video/mp4'
+  else
+    'application/octet-stream'
+  end
+end
 
 get '/' do
   content_type :json
@@ -146,8 +191,7 @@ post '/upload' do
 
     puts "Fichier reçu #{filename}, type: #{file[:type]}, taille: #{File.size(tempfile.path)} bytes"
 
-    timestamp = Time.now.to_i
-    safe_filename = "#{timestamp}_#{filename.gsub(/[^a-zA-Z0-9\.\-]/, '_')}"
+    safe_filename = sanitize_filename(filename)
 
     path = File.join(settings.public_folder, 'uploads', safe_filename)
 
@@ -160,7 +204,7 @@ post '/upload' do
       puts "ERREUR: Le fichier n'a pas été correctement enregistré dans: #{path}"
     end
 
-    file_url = "http://195.35.1.108:#{request.port}/uploads/#{safe_filename}"
+    file_url = "http://195.35.1.108:#{request.port}/uploads/#{URI.encode_www_form_component(safe_filename)}"
 
     puts "URL générée pour le fichier #{file_url}"
 
@@ -242,7 +286,7 @@ get '/test-upload-access' do
 
   files.each do |filename|
     file_path = File.join(upload_dir, filename)
-    file_url = "http://195.35.1.108:#{request.port}/uploads/#{filename}"
+    file_url = "http://195.35.1.108:#{request.port}/uploads/#{URI.encode_www_form_component(filename)}"
     file_size = File.size(file_path) rescue 'Inconnu'
     file_type = File.extname(filename).downcase
 
@@ -269,30 +313,4 @@ get '/test-upload-access' do
   html += "</body></html>"
 
   return html
-end
-
-def detect_mime_type(file_path)
-  extension = File.extname(file_path).downcase
-  case extension
-  when '.jpg', '.jpeg'
-    'image/jpeg'
-  when '.png'
-    'image/png'
-  when '.gif'
-    'image/gif'
-  when '.pdf'
-    'application/pdf'
-  when '.doc', '.docx'
-    'application/msword'
-  when '.xls', '.xlsx'
-    'application/vnd.ms-excel'
-  when '.zip'
-    'application/zip'
-  when '.mp3'
-    'audio/mpeg'
-  when '.mp4'
-    'video/mp4'
-  else
-    'application/octet-stream'
-  end
 end
