@@ -3,6 +3,7 @@ require 'sqlite3'
 require 'bcrypt'
 require 'fileutils'
 require 'json'
+require 'uri'
 
 set :bind, '0.0.0.0'
 set :port, 4567
@@ -56,6 +57,47 @@ rescue => e
 end
 
 set :public_folder, File.dirname(__FILE__) + '/public'
+
+def sanitize_filename(filename)
+  sanitized = filename.encode('ASCII',
+    :invalid => :replace,
+    :undef => :replace,
+    :replace => '_'
+  )
+
+  safe_filename = sanitized.gsub(/[^0-9A-Za-z.\-]/, '_')
+
+  safe_filename = safe_filename[0, 255]
+  safe_filename = 'unnamed_file' if safe_filename.empty?
+
+  safe_filename
+end
+
+def detect_mime_type(file_path)
+  extension = File.extname(file_path).downcase
+  case extension
+  when '.jpg', '.jpeg'
+    'image/jpeg'
+  when '.png'
+    'image/png'
+  when '.gif'
+    'image/gif'
+  when '.pdf'
+    'application/pdf'
+  when '.doc', '.docx'
+    'application/msword'
+  when '.xls', '.xlsx'
+    'application/vnd.ms-excel'
+  when '.zip'
+    'application/zip'
+  when '.mp3'
+    'audio/mpeg'
+  when '.mp4'
+    'video/mp4'
+  else
+    'application/octet-stream'
+  end
+end
 
 get '/' do
   content_type :json
@@ -147,7 +189,7 @@ post '/upload' do
     puts "Fichier reçu #{filename}, type: #{file[:type]}, taille: #{File.size(tempfile.path)} bytes"
 
     timestamp = Time.now.to_i
-    safe_filename = "#{timestamp}_#{filename.gsub(/[^a-zA-Z0-9\.\-]/, '_')}"
+    safe_filename = "#{timestamp}_#{sanitize_filename(filename)}"
 
     path = File.join(settings.public_folder, 'uploads', safe_filename)
 
@@ -160,7 +202,7 @@ post '/upload' do
       puts "ERREUR: Le fichier n'a pas été correctement enregistré dans: #{path}"
     end
 
-    file_url = "http://195.35.1.108:#{request.port}/uploads/#{safe_filename}"
+    file_url = "http://195.35.1.108:#{request.port}/uploads/#{URI.encode_www_form_component(safe_filename)}"
 
     puts "URL générée pour le fichier #{file_url}"
 
@@ -242,7 +284,7 @@ get '/test-upload-access' do
 
   files.each do |filename|
     file_path = File.join(upload_dir, filename)
-    file_url = "http://195.35.1.108:#{request.port}/uploads/#{filename}"
+    file_url = "http://195.35.1.108:#{request.port}/uploads/#{URI.encode_www_form_component(filename)}"
     file_size = File.size(file_path) rescue 'Inconnu'
     file_type = File.extname(filename).downcase
 
@@ -269,30 +311,4 @@ get '/test-upload-access' do
   html += "</body></html>"
 
   return html
-end
-
-def detect_mime_type(file_path)
-  extension = File.extname(file_path).downcase
-  case extension
-  when '.jpg', '.jpeg'
-    'image/jpeg'
-  when '.png'
-    'image/png'
-  when '.gif'
-    'image/gif'
-  when '.pdf'
-    'application/pdf'
-  when '.doc', '.docx'
-    'application/msword'
-  when '.xls', '.xlsx'
-    'application/vnd.ms-excel'
-  when '.zip'
-    'application/zip'
-  when '.mp3'
-    'audio/mpeg'
-  when '.mp4'
-    'video/mp4'
-  else
-    'application/octet-stream'
-  end
 end

@@ -72,7 +72,7 @@ class ChatController
       SQL
       db.close
     rescue => ex
-      puts "| 🔴 Erreur lors de l'initialisation de la base de données #{ex.message}"
+      puts "| ⚪️ Erreur lors de l'initialisation de la base de données #{ex.message}"
     end
   end
 
@@ -86,7 +86,7 @@ class ChatController
       return handle_command(message, driver, chat_room, username)
     else
       chat_room.broadcast_message(message, username)
-      return nil # Pas de changement de salle
+      return nil
     end
   end
 
@@ -327,7 +327,7 @@ class ChatController
         when '.doc', '.docx' then '📝'
         when '.xls', '.xlsx' then '📊'
         when '.ppt', '.pptx' then '📑'
-        when '.zip', '.rar', '.tar', '.gz' then '🗜️'
+        when '.zip', '.rar', '.tar', '.gz' then '🗂️'
         when '.mp3', '.wav', '.ogg' then '🎵'
         when '.mp4', '.avi', '.mov', '.wmv' then '🎬'
         else '📁'
@@ -409,7 +409,9 @@ class ChatController
 
         chat_room.remove_client(username)
 
-        chat_room.add_client(driver, username)
+        chat_room.add_client(driver, new_pseudo)
+
+        driver.instance_variable_set(:@username, new_pseudo)
 
         if username.is_a?(String) && username.respond_to?(:replace)
           username.replace(new_pseudo)
@@ -419,11 +421,18 @@ class ChatController
       end
       driver.text(login_result)
 
+    when '/logout'
+      driver.text("| Déconnexion")
+      special_msg = "LOGOUT_COMMAND|"
+      driver.special(special_msg)
+
+      return nil
+
     when '/clear'
       chat_room.history.clear
       chat_room.broadcast_special("CLEAR_LOGS|")
       driver.text("|| Logs cleared.")
-      driver.text("|| ⚠️ Connected to WS server")
+      driver.text("|| ⚪️ Connected to WS server")
 
     when '/savepref'
       driver.text("| ⚪️ Sauvegarde de vos préférences en cours")
@@ -454,9 +463,9 @@ class ChatController
           driver.text("| ⚠️ Format de message RTC invalide")
         end
       rescue JSON::ParserError => e
-        driver.text("| ⚠️ Erreur de parsing du message RTC: #{e.message}")
+        driver.text("| ⚠️ Erreur de parsing du message RTC #{e.message}")
       rescue => e
-        driver.text("| ⚠️ Erreur lors du traitement du message RTC: #{e.message}")
+        driver.text("| ⚠️ Erreur lors du traitement du message RTC #{e.message}")
       end
 
     else
@@ -542,7 +551,7 @@ class ChatController
       db.close
       return true
     rescue => ex
-      puts "| 🔴 Erreur lors de la sauvegarde des préférences: #{ex.message}"
+      puts "| ⚫️ Erreur lors de la sauvegarde des préférences: #{ex.message}"
       return false
     end
   end

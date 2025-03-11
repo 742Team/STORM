@@ -108,7 +108,6 @@ class ChatRoom
     end
   end
 
-  # Méthode pour relayer un message WebRTC entre deux clients
   def relay_rtc_message(sender, recipient, message)
     if @clients.key?(recipient)
       @clients[recipient].text(message)
@@ -118,7 +117,6 @@ class ChatRoom
     end
   end
 
-  # Méthode pour notifier tous les clients d'un appel en cours
   def broadcast_call_status(caller, callee, call_type, status)
     status_msg = case status
       when 'started'
@@ -187,6 +185,7 @@ class ChatRoom
       "/textcolor <couleur>         - Changer la couleur de tout le texte",
       "/register <email> <pass> <pseudo> - Créer un compte",
       "/login <email> <pass>        - Se connecter",
+      "/logout                     - Se déconnecter (supprime les infos de connexion)",
       "/clear                       - Effacer l'historique",
       "/listcolors                  - Afficher la liste des noms de couleurs disponibles",
       "/savepref                    - Sauvegarder vos préférences",
