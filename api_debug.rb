@@ -4,7 +4,7 @@ get '/test-upload-access' do
   upload_dir = File.join(settings.public_folder, 'uploads')
 
   unless Dir.exist?(upload_dir)
-    return "Le dossier d'uploads n'existe pas: #{upload_dir}"
+    return "Le dossier d'uploads n'existe pas #{upload_dir}"
   end
 
   files = Dir.entries(upload_dir).reject { |f| f == '.' || f == '..' }

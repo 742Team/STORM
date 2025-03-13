@@ -435,9 +435,8 @@ class ChatController
       driver.text("|| ⚪️ Connected to WS server")
 
     when '/savepref'
-      driver.text("| ⚪️ Sauvegarde de vos préférences en cours")
       save_all_preferences(username, chat_room)
-      driver.text("| Préférences sauvegardées avec succès")
+      driver.text("| ⚪️ Préférences sauvegardées. ")
 
     when '/listcolors'
       color_list = COLOR_NAMES.keys.sort.join(", ")

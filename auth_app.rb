@@ -19,11 +19,11 @@ before do
     halt 200
   end
 
-  puts "#{request.request_method} #{request.path_info} - Params: #{params.inspect}"
+  puts "#{request.request_method} #{request.path_info} - Params #{params.inspect}"
 end
 
 error do |e|
-  puts "ERREUR: #{e.message}"
+  puts "ERREUR #{e.message}"
   puts e.backtrace.join("\n")
   content_type :json
   { success: false, error: e.message }.to_json
@@ -47,7 +47,7 @@ SQL
 db.close
 
 FileUtils.mkdir_p('public/uploads')
-puts "Dossier d'upload créé: public/uploads"
+puts "Dossier d'upload créé public/uploads"
 
 begin
   FileUtils.chmod(0755, 'public/uploads')
@@ -167,14 +167,14 @@ post '/login' do
       "| Invalid password"
     end
   rescue => ex
-    "| Error login: #{ex.message}"
+    "| Error login #{ex.message}"
   end
 end
 
 post '/upload' do
   content_type :json
 
-  puts "Démarrage de l'upload de fichier..."
+  puts "Démarrage de l'upload de fichier"
 
   begin
     unless params[:file] && params[:file][:tempfile] && params[:file][:filename]
@@ -186,7 +186,7 @@ post '/upload' do
     filename = file[:filename]
     tempfile = file[:tempfile]
 
-    puts "Fichier reçu #{filename}, type: #{file[:type]}, taille: #{File.size(tempfile.path)} bytes"
+    puts "Fichier reçu #{filename}, type #{file[:type]}, taille #{File.size(tempfile.path)} bytes"
 
     timestamp = Time.now.to_i
     safe_filename = "#{timestamp}_#{sanitize_filename(filename)}"
@@ -199,7 +199,7 @@ post '/upload' do
     if File.exist?(path)
       puts "Fichier vérifié et existe dans #{path}"
     else
-      puts "ERREUR: Le fichier n'a pas été correctement enregistré dans: #{path}"
+      puts "ERREUR Le fichier n'a pas été correctement enregistré dans #{path}"
     end
 
     file_url = "http://195.35.1.108:#{request.port}/uploads/#{URI.encode_www_form_component(safe_filename)}"

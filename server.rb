@@ -27,7 +27,7 @@ loop do
 
       driver.on(:connect) do
         if driver.env['HTTP_UPGRADE'].to_s.downcase != 'websocket'
-          puts "🔴 Connection invalide".red
+          puts "⚫️ Connection invalide".red
           socket.close
         else
           driver.start
@@ -35,7 +35,7 @@ loop do
       end
 
       driver.on(:open) do
-        puts "🟢 Nouvelle connection".green
+        puts "⚪️ Nouvelle connection".green
         driver.text("| Entrez votre username ").white
       end
 
@@ -68,7 +68,7 @@ loop do
       end
 
       driver.on(:close) do
-        puts "🔴 Connexion WS fermée".red
+        puts "⚫️ Connexion WS fermée".red
 
         username = driver.instance_variable_get(:@username)
         current_room = driver.instance_variable_get(:@current_room)
@@ -81,7 +81,7 @@ loop do
       end
 
       driver.on(:error) do |error|
-        puts "🔴 Erreur WebSocket: #{error.message}".red
+        puts "⚫️ Erreur WS #{error.message}".red
       end
 
       while (data = socket.readpartial(1024))
@@ -89,9 +89,9 @@ loop do
       end
 
     rescue EOFError
-      puts "🔴 Connection fermée (EOF)".red
+      puts "| ⚫️ Connection fermée (EOF)".red
     rescue => e
-      puts "⚠️ Erreur: #{e.message}".red
+      puts "| ⚫️ Erreur #{e.message}".red
       puts e.backtrace.join("\n").yellow
     ensure
       socket.close unless socket.closed?
