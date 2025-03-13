@@ -80,7 +80,7 @@ class ChatRoom
     timestamp = (Time.now + 3600).strftime('%H:%M')
     color = @client_colors[sender] || '#FFFFFF'
 
-    formatted_message = "[#{timestamp}] <span style='color: #{color}'>#{sender}</span> <img src=\"#{image_url}\" alt=\"image\" style=\"max-width: 500px; max-height: 400px;\">"
+    formatted_message = "#{timestamp} <span style='color: #{color}'>#{sender}</span> <img src=\"#{image_url}\" alt=\"image\" style=\"max-width: 500px; max-height: 400px;\">"
     @history << formatted_message
 
     @clients.each_value do |driver|
