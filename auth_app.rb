@@ -5,6 +5,7 @@ require 'fileutils'
 require 'json'
 require 'uri'
 require 'securerandom'
+require_relative './controllers/chat_controller'
 
 set :bind, '0.0.0.0'
 set :port, 4567
@@ -317,4 +318,27 @@ get '/test-upload-access' do
   html += "</body></html>"
 
   return html
+end
+
+# Add this near the top after other configurations
+configure do
+  set :chat_controller, ChatController.new
+end
+
+# Add this endpoint
+get '/public-rooms' do
+  content_type :json
+  chat_controller = settings.chat_controller
+  
+  {
+    success: true,
+    rooms: chat_controller.chat_rooms.select { |_, room| room.password.nil? }.map { |name, room| 
+      {
+        name: name,
+        users_count: room.clients.size,
+        creator: room.creator,
+        created_at: room.created_at || Time.now
+      }
+    }
+  }.to_json
 end
