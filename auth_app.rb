@@ -320,18 +320,36 @@ get '/test-upload-access' do
   return html
 end
 
-# Add this near the top after other configurations
+# Add after other requires at the top
+require 'thread'
+
+# Add after other configurations
 configure do
-  set :chat_controller, ChatController.instance  # Changed from .new to .instance
+  set :chat_controller, ChatController.instance
+  
+  # Start polling thread for rooms
+  Thread.new do
+    while true
+      begin
+        settings.chat_controller.refresh_rooms if settings.chat_controller
+        sleep 5  # Check every 5 seconds
+      rescue => e
+        puts "Polling error: #{e.message}"
+      end
+    end
+  end
 end
 
-# Add this endpoint
+# Update the public-rooms endpoint
 get '/public-rooms' do
   content_type :json
+  cache_control :no_cache, :no_store
+  
   chat_controller = settings.chat_controller
   
   {
     success: true,
+    timestamp: Time.now.to_i,
     rooms: chat_controller.chat_rooms.select { |_, room| room.password.nil? }.map { |name, room| 
       {
         name: name,
