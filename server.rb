@@ -25,6 +25,9 @@ loop do
         self.text(msg)
       end
 
+      # Add this line here, right after creating the driver
+      driver.define_singleton_method(:socket) { socket }
+
       driver.instance_variable_set(:@username, nil)
       driver.instance_variable_set(:@current_room, nil)
 
@@ -110,9 +113,4 @@ loop do
       socket.close unless socket.closed?
     end
   end
-end
-
-# Add this method to the WebSocket::Driver instance
-driver.define_singleton_method(:socket) do
-  socket
 end
