@@ -72,7 +72,7 @@ class ChatController
       SQL
       db.close
     rescue => ex
-      puts "| 🔴 Erreur lors de l'initialisation de la base de données #{ex.message}"
+      puts "| ⚫️ Erreur lors de l'initialisation de la base de données #{ex.message}"
     end
   end
 
@@ -338,7 +338,7 @@ class ChatController
       chat_room.broadcast_formatted_message(safe_html, username)
 
     when '/upload'
-      driver.text("| 📁 Demande d'upload de fichier...")
+      driver.text("| 📁 Demande d'upload de fichier")
       special_msg = "REQUEST_FILE_UPLOAD|"
       driver.special(special_msg)
 
