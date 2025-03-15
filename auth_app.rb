@@ -165,7 +165,7 @@ post '/login' do
 
     u, d = r.first
     if BCrypt::Password.new(d) == p1
-      "| Logged in as #{u}".grey
+      "| Logged in as #{u}"
     else
       "| Invalid password"
     end

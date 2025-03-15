@@ -20,26 +20,26 @@ class ChatRoom
       return false
     end
     @clients[username] = driver
-    broadcast_message("#{username} joined the thread", 'Server').grey
+    broadcast_message("#{username} joined the thread", 'Server')
     return true
   end
 
   def remove_client(username)
     if @clients.key?(username)
       @clients.delete(username)
-      broadcast_message("#{username} left the thread", 'Server').grey
+      broadcast_message("#{username} left the thread", 'Server')
     end
   end
 
   def ban_user(username)
     remove_client(username)
     @banned_users << username
-    broadcast_message("#{username} a été banni", 'Server').grey
+    broadcast_message("#{username} a été banni", 'Server')
   end
 
   def kick_user(username)
     remove_client(username)
-    broadcast_message("#{username} a été expulsé du thread", 'Server').red
+    broadcast_message("#{username} a été expulsé du thread", 'Server')
   end
 
   def direct_message(sender, recipient, message)
