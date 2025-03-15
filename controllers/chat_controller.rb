@@ -1,8 +1,10 @@
 require 'sqlite3'
 require 'bcrypt'
 require_relative '../models/chat_room'
+require 'singleton'
 
 class ChatController
+  include Singleton
   attr_accessor :chat_rooms
 
   COLOR_NAMES = {

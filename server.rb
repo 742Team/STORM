@@ -9,7 +9,7 @@ Encoding.default_internal = Encoding::UTF_8
 server_ip   = '0.0.0.0'
 server_port = 3630
 server      = TCPServer.new(server_ip, server_port)
-chat_controller = ChatController.new
+chat_controller = ChatController.instance  # Changed from .new to .instance
 
 puts "⚡️ Serveur WebSocket en cours d'exécution sur #{server_ip}:#{server_port}".green
 

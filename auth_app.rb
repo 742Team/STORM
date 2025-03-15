@@ -322,7 +322,7 @@ end
 
 # Add this near the top after other configurations
 configure do
-  set :chat_controller, ChatController.new
+  set :chat_controller, ChatController.instance  # Changed from .new to .instance
 end
 
 # Add this endpoint
