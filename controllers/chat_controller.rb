@@ -85,24 +85,9 @@ class ChatController
     if message.start_with?('/')
       return handle_command(message, driver, chat_room, username)
     else
-      message = message.encode('UTF-8', invalid: :replace, undef: :replace, replace: '�')
       chat_room.broadcast_message(message, username)
       return nil
     end
-  end
-
-  def sanitize_filename(filename)
-    extension = File.extname(filename)
-    basename = File.basename(filename, extension)
-
-    uuid = SecureRandom.uuid
-    timestamp = Time.now.to_i
-
-    sanitized_basename = basename.gsub(/[^\p{Alnum}\p{L}\p{M}\s\-_]/, '_')
-    sanitized_basename = sanitized_basename.gsub(/\s+/, '_')
-    sanitized_basename = sanitized_basename[0, 100] if sanitized_basename.length > 100
-
-    "#{timestamp}_#{uuid}_#{sanitized_basename}#{extension}"
   end
 
   def convert_color(color_input)
