@@ -6,14 +6,10 @@ require 'json'
 require 'uri'
 require 'securerandom'
 
-configure do
-  set :server, 'thin'
-  set :bind, '0.0.0.0'
-  set :port, 4567
-  set :environment, :production
-  enable :logging
-  disable :reload_templates
-end
+set :bind, '0.0.0.0'
+set :port, 4567
+
+enable :logging
 
 before do
   response.headers['Access-Control-Allow-Origin'] = '*'
