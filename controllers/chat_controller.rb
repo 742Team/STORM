@@ -77,19 +77,38 @@ class ChatController
   end
 
   def create_room(name, password=nil, creator=nil)
+    # Check if room name already exists
+    if @chat_rooms.key?(name)
+      return nil
+    end
+    
     @chat_rooms[name] = ChatRoom.new(name, password, creator.is_a?(String) ? creator.dup : creator)
+    @chat_rooms[name].created_at = Time.now
     return @chat_rooms[name]
   end
 
 
 def handle_message(driver, chat_room, username, message)
+  message = message.force_encoding('UTF-8')
+  
   if message.start_with?('/')
     return handle_command(message, driver, chat_room, username)
   else
-    message = message.encode('UTF-8', invalid: :replace, undef: :replace, replace: '�')
     chat_room.broadcast_message(message, username)
     return nil
   end
+end
+
+def create_room(name, password=nil, creator=nil)
+  name = name.to_s.force_encoding('UTF-8')
+  creator = creator.to_s.force_encoding('UTF-8') if creator
+  
+  if @chat_rooms.key?(name)
+    return nil
+  end
+  
+  @chat_rooms[name] = ChatRoom.new(name, password, creator)
+  return @chat_rooms[name]
 end
 
 def sanitize_filename(filename)
@@ -150,12 +169,14 @@ end
       end
 
       new_room = create_room(room_name, room_pass, username)
+      if new_room.nil?
+        driver.text("⚠️ Le thread #{room_name} existe déjà")
+        return nil
+      end
+
       driver.text("Thread #{room_name} créé.")
-
       chat_room.remove_client(username)
-
       new_room.add_client(driver, username)
-
       return new_room
 
     when '/cd'

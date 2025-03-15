@@ -60,20 +60,24 @@ end
 set :public_folder, File.dirname(__FILE__) + '/public'
 
 def sanitize_filename(filename)
+  filename = filename.force_encoding('UTF-8')
   extension = File.extname(filename)
   basename = File.basename(filename, extension)
 
   uuid = SecureRandom.uuid
-
-  sanitized_basename = basename.gsub(/[^\p{Alnum}\p{L}\-_]/, '_')
-
-  sanitized_basename = sanitized_basename[0, 100] if sanitized_basename.length > 100
-
   timestamp = Time.now.to_i
 
-  "#{timestamp}_#{uuid}#{extension}"
+  # Preserve Unicode characters while replacing invalid ones
+  sanitized_basename = basename.gsub(/[^\p{Alnum}\p{L}\p{M}\s\-_]/u, '_')
+  sanitized_basename = sanitized_basename.gsub(/\s+/, '_')
+  sanitized_basename = sanitized_basename[0, 100] if sanitized_basename.length > 100
 
+  "#{timestamp}_#{uuid}_#{sanitized_basename}#{extension}"
+end
 
+# Add at the beginning of the file
+before do
+  request.body.set_encoding('UTF-8')
 end
 
 def detect_mime_type(file_path)
