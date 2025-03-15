@@ -62,18 +62,11 @@ set :public_folder, File.dirname(__FILE__) + '/public'
 def sanitize_filename(filename)
   extension = File.extname(filename)
   basename = File.basename(filename, extension)
-
   uuid = SecureRandom.uuid
-
   sanitized_basename = basename.gsub(/[^\p{Alnum}\p{L}\-_]/, '_')
-
   sanitized_basename = sanitized_basename[0, 100] if sanitized_basename.length > 100
-
   timestamp = Time.now.to_i
-
   "#{timestamp}_#{uuid}#{extension}"
-
-
 end
 
 def detect_mime_type(file_path)
@@ -85,6 +78,8 @@ def detect_mime_type(file_path)
     'image/png'
   when '.gif'
     'image/gif'
+  when '.webp'
+    'image/webp'
   when '.pdf'
     'application/pdf'
   when '.doc', '.docx'
@@ -97,6 +92,10 @@ def detect_mime_type(file_path)
     'audio/mpeg'
   when '.mp4'
     'video/mp4'
+  when '.webm'
+    'video/webm'
+  when '.ogg'
+    'video/ogg'
   else
     'application/octet-stream'
   end
@@ -165,7 +164,7 @@ post '/login' do
 
     u, d = r.first
     if BCrypt::Password.new(d) == p1
-      "| Logged in as #{u}".grey
+      "| Logged in as #{u}"
     else
       "| Invalid password"
     end
@@ -192,7 +191,6 @@ post '/upload' do
     puts "Fichier reçu #{filename}, type: #{file[:type]}, taille: #{File.size(tempfile.path)} bytes"
 
     safe_filename = sanitize_filename(filename)
-
     path = File.join(settings.public_folder, 'uploads', safe_filename)
 
     FileUtils.cp(tempfile.path, path)
@@ -275,6 +273,8 @@ get '/test-upload-access' do
       body { font-family: sans-serif; margin: 20px; }
       .file-entry { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
       img { max-width: 300px; max-height: 200px; }
+      video { max-width: 300px; background: #000; }
+      audio { width: 300px; }
     </style>
   </head>
   <body>
@@ -301,6 +301,20 @@ get '/test-upload-access' do
     if ['.jpg', '.jpeg', '.png', '.gif', '.webp'].include?(file_type)
       html += <<-HTML
         <img src="#{file_url}" alt="Prévisualisation">
+      HTML
+    elsif ['.mp4', '.webm', '.ogg'].include?(file_type)
+      html += <<-HTML
+        <video width="300" controls preload="metadata">
+          <source src="#{file_url}" type="#{detect_mime_type(file_path)}">
+          Your browser does not support the video tag.
+        </video>
+      HTML
+    elsif ['.mp3'].include?(file_type)
+      html += <<-HTML
+        <audio controls>
+          <source src="#{file_url}" type="#{detect_mime_type(file_path)}">
+          Your browser does not support the audio tag.
+        </audio>
       HTML
     end
 

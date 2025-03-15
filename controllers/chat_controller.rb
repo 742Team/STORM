@@ -1,6 +1,10 @@
 require 'sqlite3'
 require 'bcrypt'
 require_relative '../models/chat_room'
+require 'uri'
+require 'securerandom'
+require 'fileutils'
+require 'json'
 
 class ChatController
   attr_accessor :chat_rooms
@@ -51,6 +55,7 @@ class ChatController
   def setup_database
     begin
       db = db_connection
+      db.execute("PRAGMA foreign_keys = ON")
       db.execute <<-SQL
         CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -72,7 +77,7 @@ class ChatController
       SQL
       db.close
     rescue => ex
-      puts "| 🔴 Erreur lors de l'initialisation de la base de données #{ex.message}"
+      puts "| 🔴 Erreur lors de l'initialisation de la base de données: #{ex.message}"
     end
   end
 
@@ -92,14 +97,60 @@ class ChatController
 
   def convert_color(color_input)
     return color_input if color_input.start_with?('#')
-
     color_name = color_input.downcase
+    COLOR_NAMES.fetch(color_name, color_input)
+  end
 
-    if COLOR_NAMES.key?(color_name)
-      return COLOR_NAMES[color_name]
+  def sanitize_filename(filename)
+    extension = File.extname(filename)
+    basename = File.basename(filename, extension)
+
+    uuid = SecureRandom.uuid
+    timestamp = Time.now.to_i
+
+    sanitized_basename = basename.gsub(/[^\p{Alnum}\p{L}\p{M}\s\-_]/, '_')
+    sanitized_basename = sanitized_basename.gsub(/\s+/, '_')
+    sanitized_basename = sanitized_basename[0, 100] if sanitized_basename.length > 100
+
+    "#{timestamp}_#{uuid}_#{sanitized_basename}#{extension}"
+  end
+
+  def detect_mime_type(file_path)
+    extension = File.extname(file_path).downcase
+    case extension
+    when '.jpg', '.jpeg'
+      'image/jpeg'
+    when '.png'
+      'image/png'
+    when '.gif'
+      'image/gif'
+    when '.webp'
+      'image/webp'
+    when '.pdf'
+      'application/pdf'
+    when '.doc', '.docx'
+      'application/msword'
+    when '.xls', '.xlsx'
+      'application/vnd.ms-excel'
+    when '.zip'
+      'application/zip'
+    when '.mp3'
+      'audio/mpeg'
+    when '.mp4'
+      'video/mp4'
+    when '.webm'
+      'video/webm'
+    when '.ogg'
+      'video/ogg'
+    when '.avi'
+      'video/x-msvideo'
+    when '.mov'
+      'video/quicktime'
+    when '.wmv'
+      'video/x-ms-wmv'
+    else
+      'application/octet-stream'
     end
-
-    return color_input
   end
 
   def handle_command(msg, driver, chat_room, username)
@@ -327,7 +378,7 @@ class ChatController
         when '.doc', '.docx' then '📝'
         when '.xls', '.xlsx' then '📊'
         when '.ppt', '.pptx' then '📑'
-        when '.zip', '.rar', '.tar', '.gz' then '🗜️'
+        when '.zip', '.rar', '.tar', '.gz' then '🗂️'
         when '.mp3', '.wav', '.ogg' then '🎵'
         when '.mp4', '.avi', '.mov', '.wmv' then '🎬'
         else '📁'
@@ -338,7 +389,7 @@ class ChatController
       chat_room.broadcast_formatted_message(safe_html, username)
 
     when '/upload'
-      driver.text("| 📤 Demande d'upload de fichier...")
+      driver.text("| 📁 Demande d'upload de fichier...")
       special_msg = "REQUEST_FILE_UPLOAD|"
       driver.special(special_msg)
 
