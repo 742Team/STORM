@@ -488,14 +488,20 @@ end
 
   # Add this method in the ChatController class
   def refresh_rooms
-  # This method will be called by the polling thread
+  # Clean up disconnected clients and update room status
   @chat_rooms.each do |name, room|
-  # Clean up any disconnected clients
-  room.clients.delete_if { |_, client| client.nil? || client.socket.closed? }
+    room.clients.delete_if do |username, client|
+      begin
+        # Check if client is still connected
+        client.socket.closed?
+      rescue => e
+        true # Remove client if there's any error
+      end
+    end
   end
-  
+
   # Remove empty rooms except 'Main'
-  @chat_rooms.delete_if { |name, room| name != 'Main' && room.clients.empty? }
+  @chat_rooms.delete_if { |name, room| name != "Main" && room.clients.empty? }
   end
 
   def db_connection
