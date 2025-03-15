@@ -486,6 +486,18 @@ end
 
   private
 
+  # Add this method in the ChatController class
+  def refresh_rooms
+  # This method will be called by the polling thread
+  @chat_rooms.each do |name, room|
+  # Clean up any disconnected clients
+  room.clients.delete_if { |_, client| client.nil? || client.socket.closed? }
+  end
+  
+  # Remove empty rooms except 'Main'
+  @chat_rooms.delete_if { |name, room| name != 'Main' && room.clients.empty? }
+  end
+
   def db_connection
     db_path = ENV['DB_PATH'] || 'chat_app.db'
     SQLite3::Database.new(db_path)

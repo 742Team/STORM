@@ -111,3 +111,8 @@ loop do
     end
   end
 end
+
+# Add this method to the WebSocket::Driver instance
+driver.define_singleton_method(:socket) do
+  socket
+end
