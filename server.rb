@@ -11,7 +11,7 @@ server_port = 3630
 server      = TCPServer.new(server_ip, server_port)
 chat_controller = ChatController.instance  # Changed from .new to .instance
 
-puts "⚡️ Serveur WebSocket en cours d'exécution sur #{server_ip}:#{server_port}".green
+puts chat_controller.translate('server_running', nil, [server_ip, server_port]).green
 
 chat_controller.create_room("Main", nil, "Server")
 
@@ -28,12 +28,16 @@ loop do
       # Add this line here, right after creating the driver
       driver.define_singleton_method(:socket) { socket }
 
+      driver.define_singleton_method(:close) do
+        socket.close unless socket.closed?
+      end
+
       driver.instance_variable_set(:@username, nil)
       driver.instance_variable_set(:@current_room, nil)
 
       driver.on(:connect) do
         if driver.env['HTTP_UPGRADE'].to_s.downcase != 'websocket'
-          puts "🔴 Connection invalide".red
+          puts chat_controller.translate('invalid_connection').red
           socket.close
         else
           driver.start
@@ -41,8 +45,8 @@ loop do
       end
 
       driver.on(:open) do
-        puts "🟢 Nouvelle connection".green
-        driver.text("| Entrez votre username ")
+        puts chat_controller.translate('new_connection').green
+        driver.text(chat_controller.translate('enter_username'))
       end
 
       driver.on(:message) do |event|
@@ -52,7 +56,7 @@ loop do
 
         if username.nil?
           if msg.empty?
-            driver.text("| ⚠️ Pseudo vide, réessayez")
+            driver.text(chat_controller.translate('empty_username'))
             next
           end
 
@@ -62,7 +66,7 @@ loop do
           end
 
           if username_in_use
-            driver.text("| ⚠️ Ce pseudo est déjà utilisé, choisissez-en un autre")
+            driver.text(chat_controller.translate('username_taken'))
             next
           end
 
@@ -73,7 +77,7 @@ loop do
           driver.instance_variable_set(:@current_room, current_room)
 
           current_room.add_client(driver, username)
-          driver.text("| Bienvenue #{username} Tapez /help pour la liste des commandes")
+          driver.text(chat_controller.translate('welcome_message', username, [username]))
         else
           new_room = chat_controller.handle_message(driver, current_room, username, msg)
 
@@ -84,7 +88,7 @@ loop do
       end
 
       driver.on(:close) do
-        puts "🔴 Connexion WS fermée".red
+        puts chat_controller.translate('connection_closed').red
 
         username = driver.instance_variable_get(:@username)
         current_room = driver.instance_variable_get(:@current_room)
@@ -97,7 +101,7 @@ loop do
       end
 
       driver.on(:error) do |error|
-        puts "🔴 Erreur WebSocket: #{error.message}".red
+        puts chat_controller.translate('websocket_error', nil, [error.message]).red
       end
 
       while (data = socket.readpartial(1024))
@@ -105,9 +109,9 @@ loop do
       end
 
     rescue EOFError
-      puts "🔴 Connection fermée (EOF)".red
+      puts chat_controller.translate('connection_eof').red
     rescue => e
-      puts "⚠️ Erreur: #{e.message}".red
+      puts chat_controller.translate('error_generic', nil, [e.message]).red
       puts e.backtrace.join("\n").yellow
     ensure
       socket.close unless socket.closed?

@@ -1,7 +1,14 @@
 require 'sqlite3'
 require 'bcrypt'
 require_relative '../models/chat_room'
+require_relative './command_handler'
+require_relative './user_manager'
+require_relative './preference_manager'
+require_relative './language_manager'
 require 'singleton'
+require 'fileutils'
+require 'mini_magick' # For image compression
+require 'zlib' # For general file compression
 
 class ChatController
   include Singleton
@@ -47,584 +54,302 @@ class ChatController
 
   def initialize
     @chat_rooms = {}
+    
+    # Initialize language manager first
+    @language_manager = LanguageManager.instance
+    
+    # Initialize preference manager
+    @preference_manager = PreferenceManager.new(self)
+    
+    # Break the circular dependency by deferring UserManager initialization
+    # We'll initialize it after the ChatController instance is fully created
+    @user_manager = nil
+    
+    # Create command handler without UserManager for now
+    @command_handler = CommandHandler.new(self, nil, @preference_manager, @language_manager)
+    
+    # Now that ChatController is initialized, we can create UserManager
+    @user_manager = UserManager.new(self)
+    
+    # Update the command handler with the user manager
+    @command_handler.instance_variable_set(:@user_manager, @user_manager)
+    
+    # Set the user_manager in the preference_manager
+    @preference_manager.set_user_manager(@user_manager)
+    
+    # Setup database first
     setup_database
+    
+    # Now that database is set up, initialize languages
+    @language_manager.initialize_languages
   end
 
   def setup_database
     begin
+      # Ensure the database directory exists
+      db_path = ENV['DB_PATH'] || 'chat_app.db'
+      db_dir = File.dirname(db_path)
+      FileUtils.mkdir_p(db_dir) unless db_dir == '.' || File.directory?(db_dir)
+      
+      # Create the database file if it doesn't exist
       db = db_connection
+      
+      # Create tables with proper error handling
+      create_users_table(db)
+      create_preferences_table(db)
+      
+      # Create translations table if needed
       db.execute <<-SQL
-        CREATE TABLE IF NOT EXISTS users (
+        CREATE TABLE IF NOT EXISTS translations (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          email TEXT UNIQUE NOT NULL,
-          username TEXT UNIQUE NOT NULL,
-          password_digest TEXT NOT NULL
+          language TEXT NOT NULL,
+          key TEXT NOT NULL,
+          value TEXT NOT NULL,
+          UNIQUE(language, key)
         );
       SQL
-
-      db.execute <<-SQL
-        CREATE TABLE IF NOT EXISTS user_preferences (
-          user_id INTEGER PRIMARY KEY,
-          text_color TEXT,
-          background_url TEXT,
-          font_family TEXT,
-          color TEXT,
-          FOREIGN KEY (user_id) REFERENCES users(id)
-        );
-      SQL
+      
       db.close
+      puts "Database initialized successfully"
     rescue => ex
-      puts "| ⚫️ Erreur lors de l'initialisation de la base de données #{ex.message}"
+      puts translate('database_init_error', nil, [ex.message])
     end
   end
 
+  def create_users_table(db)
+    db.execute <<-SQL
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE NOT NULL,
+        username TEXT UNIQUE NOT NULL,
+        password_digest TEXT NOT NULL
+      );
+    SQL
+  end
+
+  def create_preferences_table(db)
+    db.execute <<-SQL
+      CREATE TABLE IF NOT EXISTS user_preferences (
+        user_id INTEGER PRIMARY KEY,
+        text_color TEXT,
+        background_url TEXT,
+        font_family TEXT,
+        color TEXT,
+        language TEXT DEFAULT 'en',
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      );
+    SQL
+  end
+
   def create_room(name, password=nil, creator=nil)
-    # Check if room name already exists
-    if @chat_rooms.key?(name)
-      return nil
-    end
+    name = name.to_s.force_encoding('UTF-8')
+    creator = creator.to_s.force_encoding('UTF-8') if creator
     
-    @chat_rooms[name] = ChatRoom.new(name, password, creator.is_a?(String) ? creator.dup : creator)
+    return nil if @chat_rooms.key?(name)
+    
+    @chat_rooms[name] = ChatRoom.new(name, password, creator)
     @chat_rooms[name].created_at = Time.now
     return @chat_rooms[name]
   end
 
-
-def handle_message(driver, chat_room, username, message)
-  message = message.force_encoding('UTF-8')
-  
-  if message.start_with?('/')
-    return handle_command(message, driver, chat_room, username)
-  else
-    chat_room.broadcast_message(message, username)
-    return nil
+  def handle_message(driver, chat_room, username, message)
+    message = message.force_encoding('UTF-8')
+    
+    if message.start_with?('/')
+      return @command_handler.handle_command(message, driver, chat_room, username)
+    else
+      chat_room.broadcast_message(message, username)
+      return nil
+    end
   end
-end
 
-def create_room(name, password=nil, creator=nil)
-  name = name.to_s.force_encoding('UTF-8')
-  creator = creator.to_s.force_encoding('UTF-8') if creator
-  
-  if @chat_rooms.key?(name)
-    return nil
+  def translate(key, username = nil, params = [])
+    if username
+      language = @language_manager.get_user_language(username)
+      @language_manager.translate(key, language, params)
+    else
+      @language_manager.translate(key, nil, params)
+    end
   end
-  
-  @chat_rooms[name] = ChatRoom.new(name, password, creator)
-  return @chat_rooms[name]
-end
-
-def sanitize_filename(filename)
-  extension = File.extname(filename)
-  basename = File.basename(filename, extension)
-
-  uuid = SecureRandom.uuid
-  timestamp = Time.now.to_i
-
-  sanitized_basename = basename.gsub(/[^\p{Alnum}\p{L}\p{M}\s\-_]/, '_')
-  sanitized_basename = sanitized_basename.gsub(/\s+/, '_')
-  sanitized_basename = sanitized_basename[0, 100] if sanitized_basename.length > 100
-
-  "#{timestamp}_#{uuid}_#{sanitized_basename}#{extension}"
-end
-
 
   def convert_color(color_input)
     return color_input if color_input.start_with?('#')
 
     color_name = color_input.downcase
-
-    if COLOR_NAMES.key?(color_name)
-      return COLOR_NAMES[color_name]
-    end
-
-    return color_input
+    return COLOR_NAMES.fetch(color_name, color_input)
   end
 
-  def handle_command(msg, driver, chat_room, username)
-    parts   = msg.split(' ')
-    command = parts[0].downcase
-    new_room = nil
+  def sanitize_filename(filename)
+    extension = File.extname(filename)
+    basename = File.basename(filename, extension)
 
-    case command
-    when '/help'
-      driver.text(chat_room.commands)
-      driver.text("Pour les commandes /color et /textcolor, vous pouvez utiliser les noms de couleurs (ex: /color red) ou les codes hexadécimaux (ex: /color #FF0000).")
+    uuid = SecureRandom.uuid
+    timestamp = Time.now.to_i
 
-    when '/list'
-      driver.text("Utilisateurs dans ce thread | #{chat_room.list_users}")
+    sanitized_basename = basename.gsub(/[^\p{Alnum}\p{L}\p{M}\s\-_]/, '_')
+    sanitized_basename = sanitized_basename.gsub(/\s+/, '_')
+    sanitized_basename = sanitized_basename[0, 100] if sanitized_basename.length > 100
 
-    when '/info'
-      driver.text("Thread | #{chat_room.name} | creator | #{chat_room.creator} | users | #{chat_room.list_users}")
-
-    when '/history'
-      chat_room.history.each { |line| driver.text(line) }
-
-    when '/banned'
-      driver.text("Bannis | #{chat_room.banned_users.join(', ')}")
-
-    when '/cr'
-      room_name = parts[1]
-      room_pass = parts[2]
-      if room_name.nil?
-        driver.text("Usage /cr <nom> <password>")
-        return nil
-      end
-
-      new_room = create_room(room_name, room_pass, username)
-      if new_room.nil?
-        driver.text("⚠️ Le thread #{room_name} existe déjà")
-        return nil
-      end
-
-      driver.text("Thread #{room_name} créé.")
-      chat_room.remove_client(username)
-      new_room.add_client(driver, username)
-      return new_room
-
-    when '/cd'
-      room_name = parts[1]
-      room_pass = parts[2]
-      if room_name.nil?
-        driver.text("Usage /cd <nom> <password>")
-        return nil
-      end
-
-      if @chat_rooms.key?(room_name)
-        new_room = @chat_rooms[room_name]
-
-        if new_room.password.nil? || new_room.password == room_pass
-          chat_room.remove_client(username)
-
-          if new_room.add_client(driver, username)
-            return new_room
-          end
-        else
-          driver.text("⚠️ Mot de passe incorrect pour #{room_name}")
-        end
-      else
-        driver.text("⚠️ Le thread #{room_name} n'existe pas")
-      end
-
-    when '/cpd'
-      new_password = parts[1]
-      if chat_room.creator == username
-        chat_room.password = new_password
-        driver.text("Mot de passe du thread changé")
-      else
-        driver.text("⚠️ Seul le créateur peut changer le password")
-      end
-
-    when '/ban'
-      user_to_ban = parts[1]
-      if user_to_ban.nil?
-        driver.text("Usage /ban <pseudo>")
-        return nil
-      end
-      if chat_room.creator == username
-        chat_room.ban_user(user_to_ban)
-      else
-        driver.text("⚠️ Seul le créateur peut bannir")
-      end
-
-    when '/kick'
-      user_to_kick = parts[1]
-      if user_to_kick.nil?
-        driver.text("Usage /kick <pseudo>")
-        return nil
-      end
-      if chat_room.creator == username
-        chat_room.kick_user(user_to_kick)
-      else
-        driver.text("⚠️ Seul le créateur peut kick")
-      end
-
-    when '/dm'
-      user_to_dm = parts[1]
-      dm_message = parts[2..-1].join(' ')
-      if user_to_dm.nil? || dm_message.empty?
-        driver.text("Usage /dm <pseudo> <message>")
-        return nil
-      end
-      chat_room.direct_message(username, user_to_dm, dm_message)
-
-    when '/qt'
-      driver.text("Commande /qt non implémentée.")
-
-    when '/quit'
-      chat_room.remove_client(username)
-      driver.close
-
-    when '/color'
-      new_color = parts[1]
-      if new_color.nil?
-        driver.text("Usage /color <couleur> (nom de couleur ou code hexadécimal)")
-        return nil
-      end
-
-      hex_color = convert_color(new_color)
-
-      chat_room.set_color(username, hex_color)
-      driver.text("Votre couleur est maintenant #{new_color} (#{hex_color})")
-
-      save_user_preference(username, 'color', hex_color)
-
-    when '/background'
-      bg_url = parts[1]&.strip
-      if bg_url.nil?
-        driver.text("Usage /background <url>")
-        return nil
-      end
-      chat_room.broadcast_background(bg_url)
-
-      save_user_preference(username, 'background_url', bg_url)
-
-    when '/music'
-      music_url = parts[1]&.strip
-      if music_url.nil?
-        driver.text("Usage /music <url>")
-        return nil
-      end
-
-      if chat_room.password.nil?
-        driver.text("⚠️ La musique ne peut être utilisée que dans les threads privés")
-        return nil
-      end
-
-      chat_room.broadcast_message("#{username} a partagé de la musique [/playmusic pour écouter]", 'Server')
-
-      chat_room.current_music_url = music_url
-      chat_room.current_music_user = username
-
-      driver.text("🎵 Musique partagée. Les utilisateurs peuvent l'écouter avec /playmusic")
-
-    when '/playmusic'
-      if !chat_room.respond_to?(:current_music_url) || chat_room.current_music_url.nil?
-        driver.text("⚠️ Aucune musique n'a été partagée dans ce thread")
-        return nil
-      end
-
-      special_msg = "PLAY_MUSIC|#{chat_room.current_music_url}"
-      driver.special(special_msg)
-      driver.text("🎵 Lecture de la musique partagée par #{chat_room.current_music_user}")
-
-    when '/stopmusic'
-      special_msg = "STOP_MUSIC|"
-      driver.special(special_msg)
-      driver.text("🎵 Lecture de la musique arrêtée")
-
-    when '/volume'
-      volume_level = parts[1]
-      if volume_level.nil?
-        driver.text("Usage /volume <niveau> (0-100)")
-        return nil
-      end
-
-      begin
-        volume = Integer(volume_level)
-        if volume < 0 || volume > 100
-          driver.text("⚠️ Le volume doit être entre 0 et 100")
-          return nil
-        end
-
-        special_msg = "SET_VOLUME|#{volume}"
-        driver.special(special_msg)
-        driver.text("Volume réglé à #{volume}%")
-      rescue ArgumentError
-        driver.text("⚠️ Le volume doit être un nombre entre 0 et 100")
-      end
-
-    when '/image'
-      image_url = parts[1]&.strip
-      if image_url.nil?
-        driver.text("Usage /image <url>")
-        return nil
-      end
-
-      unless image_url =~ /\A(http|https):\/\//i
-        driver.text("⚠️ Format d'URL invalide. L'URL doit commencer par http:// ou https://")
-        return nil
-      end
-
-      formatted_message = "IMAGE_SPECIAL|#{image_url}"
-      chat_room.broadcast_image(image_url, username)
-
-    when '/file'
-      file_url = parts[1]&.strip
-      file_name = parts[2] || "fichier partagé"
-      if file_url.nil?
-        driver.text("Usage /file <url> [nom_du_fichier]")
-        return nil
-      end
-
-      unless file_url =~ /\A(http|https):\/\//i
-        driver.text("⚠️ Format d'URL invalide. L'URL doit commencer par http:// ou https://")
-        return nil
-      end
-
-      extension = File.extname(file_url).downcase
-      icon = case extension
-        when '.pdf' then '📄'
-        when '.doc', '.docx' then '📝'
-        when '.xls', '.xlsx' then '📊'
-        when '.ppt', '.pptx' then '📑'
-        when '.zip', '.rar', '.tar', '.gz' then '🗂️'
-        when '.mp3', '.wav', '.ogg' then '🎵'
-        when '.mp4', '.avi', '.mov', '.wmv' then '🎬'
-        else '📁'
-      end
-
-      # Format simplifié pour les fichiers aussi
-      safe_html = "#{icon} <a href=\"#{file_url}\" target=\"_blank\" class=\"file-link\">#{file_name}</a>"
-      chat_room.broadcast_formatted_message(safe_html, username)
-
-    when '/upload'
-      driver.text("| 📁 Demande d'upload de fichier")
-      special_msg = "REQUEST_FILE_UPLOAD|"
-      driver.special(special_msg)
-
-    when '/powerto'
-      target = parts[1]
-      if target.nil?
-        driver.text("Usage /powerto <pseudo>")
-        return nil
-      end
-      if chat_room.creator != username
-        driver.text("⚠️ Seul le créateur peut donner le role")
-        return nil
-      end
-      unless chat_room.clients.key?(target)
-        driver.text("⚠️ L'utilisateur #{target} n'est pas dans ce thread")
-        return nil
-      end
-      chat_room.creator = target
-      chat_room.broadcast_message("#{username} a donné le rôle de créateur à #{target}", 'Server')
-
-    when '/typo'
-      new_font = parts[1]&.strip
-      if new_font.nil?
-        driver.text("Usage /typo <font_family>")
-        return nil
-      end
-      special_msg = "CHANGE_FONT|#{new_font}"
-      chat_room.broadcast_special(special_msg)
-
-      save_user_preference(username, 'font_family', new_font)
-
-    when '/textcolor'
-      new_txt_color = parts[1]&.strip
-      if new_txt_color.nil?
-        driver.text("Usage /textcolor <couleur> (nom de couleur ou code hexadécimal)")
-        return nil
-      end
-
-      hex_color = convert_color(new_txt_color)
-
-      special_msg = "CHANGE_TEXTCOLOR|#{hex_color}"
-      chat_room.broadcast_special(special_msg)
-
-      driver.text("| Couleur du texte changée en #{new_txt_color} (#{hex_color})")
-
-      save_user_preference(username, 'text_color', hex_color)
-
-    when '/register'
-      email = parts[1]&.strip
-      pass  = parts[2]
-      new_user = parts[3]&.strip
-      if email.nil? || pass.nil? || new_user.nil?
-        driver.text("Usage /register <email> <password> <pseudo>")
-        return nil
-      end
-      register_result = register_account(email, pass, new_user)
-      driver.text(register_result)
-
-    when '/login'
-      email = parts[1]&.strip
-      pass  = parts[2]
-      if email.nil? || pass.nil?
-        driver.text("Usage /login <email> <password>")
-        return nil
-      end
-      login_result = login_account(email, pass)
-      if login_result.start_with?("| Logged in as")
-        new_pseudo = login_result.split("as ")[1]
-
-        chat_room.remove_client(username)
-
-        chat_room.add_client(driver, new_pseudo)
-
-        driver.instance_variable_set(:@username, new_pseudo)
-
-        if username.is_a?(String) && username.respond_to?(:replace)
-          username.replace(new_pseudo)
-        end
-
-        apply_user_preferences(driver, chat_room, new_pseudo)
-      end
-      driver.text(login_result)
-
-    when '/clear'
-      chat_room.history.clear
-      chat_room.broadcast_special("CLEAR_LOGS|")
-      driver.text("|| Logs cleared.")
-      driver.text("|| ⚠️ Connected to WS server")
-
-    when '/savepref'
-      driver.text("| Sauvegarde de vos préférences en cours...")
-      save_all_preferences(username, chat_room)
-      driver.text("| Préférences sauvegardées avec succès")
-
-    when '/listcolors'
-      color_list = COLOR_NAMES.keys.sort.join(", ")
-      driver.text("| Noms de couleurs disponibles: #{color_list}")
-
-    else
-      driver.text("⚠️ Commande inconnue. Tapez /help pour la liste")
-    end
-
-    return new_room
+    "#{timestamp}_#{uuid}_#{sanitized_basename}#{extension}"
   end
 
-  private
-
-  # Add this method in the ChatController class
   def refresh_rooms
-  # This method will be called by the polling thread
-  @chat_rooms.each do |name, room|
-  # Clean up any disconnected clients
-  room.clients.delete_if { |_, client| client.nil? || client.socket.closed? }
-  end
-  
-  # Remove empty rooms except 'Main'
-  @chat_rooms.delete_if { |name, room| name != 'Main' && room.clients.empty? }
+    @chat_rooms.each do |_, room|
+      # Clean up any disconnected clients
+      room.clients.delete_if { |_, client| client.nil? || client.socket.closed? }
+    end
+    
+    # Remove empty rooms except 'Main'
+    @chat_rooms.delete_if { |name, room| name != 'Main' && room.clients.empty? }
   end
 
   def db_connection
     db_path = ENV['DB_PATH'] || 'chat_app.db'
-    SQLite3::Database.new(db_path)
+    db = SQLite3::Database.new(db_path)
+    
+    # Set timeout to wait for locks to clear (5000ms = 5 seconds)
+    db.busy_timeout = 5000
+    
+    # Enable WAL mode for better concurrency
+    db.execute("PRAGMA journal_mode = WAL;")
+    
+    return db
   end
 
-  def register_account(email, password, user)
-    return "| Missing fields" if email.empty? || password.empty? || user.empty?
-    pd = BCrypt::Password.create(password)
-    begin
-      db = db_connection
-      db.execute("INSERT INTO users (email, username, password_digest) VALUES (?, ?, ?)", [email, user, pd])
-      user_id = db.last_insert_row_id
-      db.execute("INSERT INTO user_preferences (user_id) VALUES (?)", [user_id])
-      db.close
-      "| User registered"
-    rescue SQLite3::ConstraintException => e
-      "| Email or username used"
-    rescue => ex
-      "| Error #{ex.message}"
+  def compress_file(file_path)
+    extension = File.extname(file_path).downcase
+    
+    case extension
+    when '.jpg', '.jpeg', '.png', '.gif', '.webp'
+      compress_image(file_path)
+    when '.mp4', '.avi', '.mov', '.wmv'
+      compress_video(file_path)
+    when '.mp3', '.wav', '.ogg'
+      compress_audio(file_path)
+    else
+      compress_generic_file(file_path)
     end
   end
 
-  def login_account(email, password)
-    return "| Missing fields" if email.empty? || password.empty?
+  def compress_image(file_path)
     begin
-      db = db_connection
-      result = db.execute("SELECT * FROM users WHERE email=?", [email])
-      db.close
-      return "| No account" if result.empty?
+      image = MiniMagick::Image.open(file_path)
+      
+      # Don't compress if already small
+      return file_path if image.size < 500_000 # 500KB
+      
+      # Calculate new dimensions while maintaining aspect ratio
+      width = image.width
+      height = image.height
+      
+      if width > 1920 || height > 1080
+        image.resize "1920x1080>"
+      end
+      
+      # Compress with quality reduction
+      image.quality "80"
+      image.write file_path
+      
+      puts translate('image_compressed', nil, [File.basename(file_path), image.size])
+      return file_path
+    rescue => e
+      puts translate('image_compression_error', nil, [e.message])
+      return file_path # Return original if compression fails
+    end
+  end
 
-      user_data = result[0]
-      password_digest = user_data[3]
-      username = user_data[2]
-
-      if BCrypt::Password.new(password_digest) == password
-        "| Logged in as #{username}"
+  def compress_video(file_path)
+    begin
+      output_path = "#{file_path}.compressed#{File.extname(file_path)}"
+      
+      # Check if ffmpeg is available
+      ffmpeg_available = system("where ffmpeg > nul 2>&1")
+      
+      if ffmpeg_available
+        # Use AV1 if possible, fallback to h264
+        av1_available = system("ffmpeg -codecs 2>&1 | findstr av1")
+        
+        if av1_available
+          # AV1 compression (high quality, smaller size)
+          system("ffmpeg -i \"#{file_path}\" -c:v libaom-av1 -crf 30 -b:v 0 -strict experimental \"#{output_path}\"")
+        else
+          # H264 compression (more compatible)
+          system("ffmpeg -i \"#{file_path}\" -c:v libx264 -crf 23 -preset medium -c:a aac -b:a 128k \"#{output_path}\"")
+        end
+        
+        if File.exist?(output_path) && File.size(output_path) < File.size(file_path)
+          FileUtils.mv(output_path, file_path)
+          puts translate('video_compressed', nil, [File.basename(file_path), File.size(file_path)])
+        else
+          FileUtils.rm(output_path) if File.exist?(output_path)
+          puts translate('video_compression_skipped', nil, [File.basename(file_path)])
+        end
       else
-        "| Invalid password"
+        puts translate('ffmpeg_not_available')
       end
-    rescue => ex
-      "| Error #{ex.message}"
+      
+      return file_path
+    rescue => e
+      puts translate('video_compression_error', nil, [e.message])
+      FileUtils.rm(output_path) if File.exist?(output_path)
+      return file_path
     end
   end
 
-  def get_user_id(username)
+  def compress_audio(file_path)
     begin
-      db = db_connection
-      result = db.execute("SELECT id FROM users WHERE username=?", [username])
-      db.close
-      return result.empty? ? nil : result[0][0]
-    rescue => ex
-      puts "Erreur lors de la récupération de l'ID utilisateur: #{ex.message}"
-      return nil
-    end
-  end
-
-  def save_user_preference(username, preference_key, preference_value)
-    user_id = get_user_id(username)
-    return false unless user_id
-
-    begin
-      db = db_connection
-      result = db.execute("SELECT user_id FROM user_preferences WHERE user_id=?", [user_id])
-
-      if result.empty?
-        db.execute("INSERT INTO user_preferences (user_id, #{preference_key}) VALUES (?, ?)",
-                  [user_id, preference_value])
+      output_path = "#{file_path}.compressed#{File.extname(file_path)}"
+      
+      # Check if ffmpeg is available
+      ffmpeg_available = system("where ffmpeg > nul 2>&1")
+      
+      if ffmpeg_available
+        # Compress audio to AAC with reasonable bitrate
+        system("ffmpeg -i \"#{file_path}\" -c:a aac -b:a 128k \"#{output_path}\"")
+        
+        if File.exist?(output_path) && File.size(output_path) < File.size(file_path)
+          FileUtils.mv(output_path, file_path)
+          puts translate('audio_compressed', nil, [File.basename(file_path), File.size(file_path)])
+        else
+          FileUtils.rm(output_path) if File.exist?(output_path)
+          puts translate('audio_compression_skipped', nil, [File.basename(file_path)])
+        end
       else
-        db.execute("UPDATE user_preferences SET #{preference_key}=? WHERE user_id=?",
-                  [preference_value, user_id])
+        puts translate('ffmpeg_not_available')
       end
-      db.close
-      return true
-    rescue => ex
-      puts "| ⚫️ Erreur lors de la sauvegarde des préférences: #{ex.message}"
-      return false
+      
+      return file_path
+    rescue => e
+      puts translate('audio_compression_error', nil, [e.message])
+      FileUtils.rm(output_path) if File.exist?(output_path)
+      return file_path
     end
   end
 
-  def save_all_preferences(username, chat_room)
-    user_color = chat_room.get_user_color(username)
-
-    save_user_preference(username, 'color', user_color) if user_color
-  end
-
-  def apply_user_preferences(driver, chat_room, username)
-    user_id = get_user_id(username)
-    return unless user_id
-
+  def compress_generic_file(file_path)
     begin
-      db = db_connection
-      result = db.execute("SELECT text_color, background_url, font_family, color FROM user_preferences WHERE user_id=?", [user_id])
-      db.close
-
-      if !result.empty?
-        prefs = result[0]
-        text_color = prefs[0]
-        bg_url = prefs[1]
-        font = prefs[2]
-        color = prefs[3]
-
-        if text_color
-          special_msg = "CHANGE_TEXTCOLOR|#{text_color}"
-          chat_room.broadcast_special(special_msg)
-          driver.text("| ⚪️ Couleur de texte restaurée #{text_color}")
-        end
-
-        if bg_url
-          chat_room.broadcast_background(bg_url)
-          driver.text("| ⚪️ Arrière-plan restauré")
-        end
-
-        if font
-          special_msg = "CHANGE_FONT|#{font}"
-          chat_room.broadcast_special(special_msg)
-          driver.text("| ⚪️ Police de text restaurée #{font}")
-        end
-
-        if color
-          chat_room.set_color(username, color)
-          driver.text("| ⚪️ Couleur de pseudo restaurée #{color}")
-        end
-
-        driver.text("| ⚪️ Préférences utilisateur restaurées")
+      # Skip if file is already small
+      return file_path if File.size(file_path) < 100_000 # 100KB
+      
+      output_path = "#{file_path}.gz"
+      
+      Zlib::GzipWriter.open(output_path) do |gz|
+        gz.write(File.read(file_path))
       end
-    rescue => ex
-      puts "Erreur lors de l'application des préférences #{ex.message}"
+      
+      if File.exist?(output_path) && File.size(output_path) < File.size(file_path)
+        FileUtils.mv(output_path, file_path)
+        puts translate('file_compressed', nil, [File.basename(file_path), File.size(file_path)])
+      else
+        FileUtils.rm(output_path) if File.exist?(output_path)
+        puts translate('file_compression_skipped', nil, [File.basename(file_path)])
+      end
+      
+      return file_path
+    rescue => e
+      puts translate('file_compression_error', nil, [e.message])
+      FileUtils.rm(output_path) if File.exist?(output_path)
+      return file_path
     end
   end
 end
