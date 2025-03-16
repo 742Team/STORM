@@ -28,4 +28,4 @@ COPY . /app/
 EXPOSE 3630
 
 # Start only the WebSocket server
-CMD ["ruby", "server.rb"]
+CMD ["ruby", "srv_message.rb"]

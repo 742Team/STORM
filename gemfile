@@ -7,3 +7,4 @@ gem 'websocket-driver'
 gem 'webrick'
 gem 'rack'
 gem 'mini_magick'  # For image processing
+gem 'taglib-ruby', '~> 1.1.0'
