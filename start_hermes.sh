@@ -1,30 +1,75 @@
 #!/bin/bash
 
-cd /root/MICRO-STORM
+# Use current directory instead of hardcoded path
+CURRENT_DIR=$(pwd)
 
 docker rm -f hermes_container 2>/dev/null
 
+# Create Gemfile with specific sqlite3 version to avoid build issues
 cat > Gemfile << EOL
 source 'https://rubygems.org'
-gem 'sqlite3'
+gem 'sqlite3', '~> 1.4.0'  # Using an older version that's more compatible
 gem 'sinatra', '~> 3.0'
 gem 'bcrypt'
 gem 'colorize'
 gem 'websocket-driver'
 gem 'webrick'
 gem 'rack'
+gem 'mini_magick'  # For image processing
 EOL
 
-bundle install
+# Create a proper Dockerfile that handles dependencies correctly
+cat > Dockerfile << EOL
+FROM ruby:3.2
 
-mkdir -p uploads
+WORKDIR /app
 
+# Install system dependencies for sqlite3 and ffmpeg
+RUN apt-get update && apt-get install -y sqlite3 libsqlite3-dev ffmpeg
+
+# Install bundler first
+RUN gem install bundler
+
+# Create Gemfile directly in the container
+RUN echo "source 'https://rubygems.org'" > /app/Gemfile && \\
+    echo "gem 'sqlite3', '~> 1.4.0'" >> /app/Gemfile && \\
+    echo "gem 'sinatra', '~> 3.0'" >> /app/Gemfile && \\
+    echo "gem 'bcrypt'" >> /app/Gemfile && \\
+    echo "gem 'colorize'" >> /app/Gemfile && \\
+    echo "gem 'websocket-driver'" >> /app/Gemfile && \\
+    echo "gem 'webrick'" >> /app/Gemfile && \\
+    echo "gem 'rack'" >> /app/Gemfile && \\
+    echo "gem 'mini_magick'" >> /app/Gemfile
+
+# Install gems
+RUN bundle install
+
+# Copy the application
+COPY . /app/
+
+# Create upload directory with proper permissions
+RUN mkdir -p /app/public/uploads
+RUN chmod 755 /app/public/uploads
+
+# Expose ports
+EXPOSE 3630 4567
+
+# Start both servers
+CMD ["sh", "-c", "ruby server.rb & ruby auth_app.rb"]
+EOL
+
+# Create uploads directory if it doesn't exist
+mkdir -p $CURRENT_DIR/uploads
+
+echo "Building Docker image..."
 docker build -t hermes .
 
+echo "Starting container..."
 docker run -d --name hermes_container \
   -p 3630:3630 \
   -p 4567:4567 \
-  -v $(pwd)/uploads:/app/public/uploads \
+  -v $CURRENT_DIR/uploads:/app/public/uploads \
+  -e DB_PATH=/app/chat_app.db \
   -e DB_NAME=hermes \
   -e DB_USER=user \
   -e DB_PASS=admin \
@@ -38,7 +83,7 @@ docker logs hermes_container
 echo "Services démarrés. Ports ouverts:"
 echo "- WebSocket: 3630"
 echo "- HTTP (uploads): 4567"
-echo "Dossier des uploads monté dans: $(pwd)/uploads"
+echo "Dossier des uploads monté dans: $CURRENT_DIR/uploads"
 
 if docker ps | grep -q hermes_container; then
   echo "🟢 Le conteneur fonctionne correctement."
@@ -52,23 +97,39 @@ FROM ruby:3.2
 
 WORKDIR /app
 
-# Copier les fichiers de l'application
-COPY . /app
+# Install system dependencies for sqlite3
+RUN apt-get update && apt-get install -y sqlite3 libsqlite3-dev
 
-# Installer les dépendances
+# Install bundler first
 RUN gem install bundler
+
+# Create Gemfile directly in the container
+RUN echo "source 'https://rubygems.org'" > /app/Gemfile && \\
+    echo "gem 'sqlite3', '~> 1.4.0'" >> /app/Gemfile && \\
+    echo "gem 'sinatra', '~> 3.0'" >> /app/Gemfile && \\
+    echo "gem 'bcrypt'" >> /app/Gemfile && \\
+    echo "gem 'colorize'" >> /app/Gemfile && \\
+    echo "gem 'websocket-driver'" >> /app/Gemfile && \\
+    echo "gem 'webrick'" >> /app/Gemfile && \\
+    echo "gem 'rack'" >> /app/Gemfile
+
+# Install gems
 RUN bundle install
 
-# Exposer uniquement le port WebSocket
+# Copy the application
+COPY . /app/
+
+# Expose only WebSocket port
 EXPOSE 3630
 
-# Démarrer uniquement le serveur WebSocket
+# Start only the WebSocket server
 CMD ["ruby", "server.rb"]
 EOL
 
   docker build -t hermes_ws -f Dockerfile.ws .
   docker run -d --name hermes_container \
     -p 3630:3630 \
+    -e DB_PATH=/app/chat_app.db \
     -e DB_NAME=hermes \
     -e DB_USER=user \
     -e DB_PASS=admin \
