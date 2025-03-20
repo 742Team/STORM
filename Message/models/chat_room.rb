@@ -1,6 +1,7 @@
 class ChatRoom
   attr_accessor :name, :password, :clients, :creator, :history, :banned_users, :client_colors
   attr_accessor :current_music_url, :current_music_user, :created_at
+  attr_accessor :controller
 
   def initialize(name, password=nil, creator=nil)
     @name = name
@@ -13,7 +14,8 @@ class ChatRoom
     @current_music_url = nil
     @current_music_user = nil
     @created_at = nil
-    @controller = ChatController.instance
+    # Don't access ChatController.instance here - it will be set from outside
+    @controller = nil
   end
 
   def add_client(driver, username)

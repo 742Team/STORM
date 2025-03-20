@@ -150,6 +150,18 @@ class ChatController
   end
 
   def create_room(name, password=nil, creator=nil)
+    def create_room(name, password=nil, creator=nil)
+      return nil if @chat_rooms.key?(name)
+      
+      room = ChatRoom.new(name, password, creator)
+      room.controller = self  # Set the controller reference
+      @chat_rooms[name] = room
+      
+      # Save to database if it's not a temporary room
+      save_room_to_db(name, password, creator)
+      
+      return room
+    end
     name = name.to_s.force_encoding('UTF-8')
     creator = creator.to_s.force_encoding('UTF-8') if creator
     
@@ -816,6 +828,7 @@ def load_rooms_from_db
       
       # Create room in memory
       @chat_rooms[name] = ChatRoom.new(name, password, creator)
+      @chat_rooms[name].controller = self  # Set the controller reference
       @chat_rooms[name].created_at = Time.parse(created_at) rescue Time.now
     end
     
