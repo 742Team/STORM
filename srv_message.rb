@@ -44,46 +44,44 @@ loop do
         end
       end
 
+      # Modifier la section qui gère la connexion des nouveaux utilisateurs
       driver.on(:open) do
         puts chat_controller.translate('new_connection').green
-        driver.text(chat_controller.translate('enter_username'))
+        
+        # Générer un nom d'utilisateur aléatoire
+        random_username = "User_#{SecureRandom.hex(4)}"
+        
+        # Vérifier que le nom d'utilisateur n'est pas déjà utilisé
+        while chat_controller.chat_rooms.any? { |_, room| room.clients.key?(random_username) }
+          random_username = "User_#{SecureRandom.hex(4)}"
+        end
+        
+        # Définir le nom d'utilisateur et la salle
+        driver.instance_variable_set(:@username, random_username)
+        current_room = chat_controller.chat_rooms["Main"]
+        driver.instance_variable_set(:@current_room, current_room)
+        
+        # Ajouter le client à la salle
+        current_room.add_client(driver, random_username)
+        
+        # Envoyer un message de bienvenue avec instructions pour changer de nom
+        driver.text(chat_controller.translate('auto_welcome', random_username, [random_username]))
+        
+        # Envoyer l'identifiant au client pour qu'il le stocke
+        driver.special("USER_ID|#{random_username}")
       end
-
+      
+      # Modifier la section qui gère les messages pour supprimer la logique de définition du nom d'utilisateur
       driver.on(:message) do |event|
         msg = event.data.strip.force_encoding('UTF-8')
         username = driver.instance_variable_get(:@username)
         current_room = driver.instance_variable_get(:@current_room)
-
-        if username.nil?
-          if msg.empty?
-            driver.text(chat_controller.translate('empty_username'))
-            next
-          end
-
-          # Check if username is already in use across all rooms
-          username_in_use = chat_controller.chat_rooms.any? do |_, room|
-            room.clients.key?(msg)
-          end
-
-          if username_in_use
-            driver.text(chat_controller.translate('username_taken'))
-            next
-          end
-
-          username = msg
-          driver.instance_variable_set(:@username, username)
-
-          current_room = chat_controller.chat_rooms["Main"]
-          driver.instance_variable_set(:@current_room, current_room)
-
-          current_room.add_client(driver, username)
-          driver.text(chat_controller.translate('welcome_message', username, [username]))
-        else
-          new_room = chat_controller.handle_message(driver, current_room, username, msg)
-
-          if new_room && new_room != current_room
-            driver.instance_variable_set(:@current_room, new_room)
-          end
+        
+        # Le nom d'utilisateur est déjà défini, donc on traite directement le message
+        new_room = chat_controller.handle_message(driver, current_room, username, msg)
+        
+        if new_room && new_room != current_room
+          driver.instance_variable_set(:@current_room, new_room)
         end
       end
 

@@ -178,4 +178,26 @@ class ChatRoom
   def escape_html(text)
     text.to_s.gsub(/[&<>"]/) { |match| {'&' => '&amp;', '<' => '&lt;', '>' => '&gt;', '"' => '&quot;'}[match] }
   end
+
+  # Ajouter cette méthode à la classe ChatRoom
+  def change_username(old_username, new_username)
+    if @clients.key?(old_username)
+      driver = @clients.delete(old_username)
+      @clients[new_username] = driver
+      
+      # Mettre à jour la couleur du client si elle existe
+      if @client_colors.key?(old_username)
+        @client_colors[new_username] = @client_colors.delete(old_username)
+      end
+      
+      # Notifier les autres utilisateurs du changement
+      broadcast_message(@controller.translate('user_renamed', nil, [old_username, new_username]), 'Server')
+      
+      # Si l'utilisateur est le créateur, mettre à jour le créateur
+      @creator = new_username if @creator == old_username
+      
+      return true
+    end
+    return false
+  end
 end
