@@ -5,38 +5,38 @@ require 'fileutils'
 
 class LanguageManager
   include Singleton
-  
+
   attr_reader :current_language, :available_languages
-  
+
   def initialize
     @default_language = 'en'
     @available_languages = []
     @languages_dir = File.join(File.dirname(__FILE__), '../locales')
-    
+
     # Ensure languages directory exists
     FileUtils.mkdir_p(@languages_dir) unless Dir.exist?(@languages_dir)
-    
+
     # Create default language file if it doesn't exist
     create_default_language_file if !File.exist?(File.join(@languages_dir, 'default.json'))
-    
+
     # Setup database first - but don't load languages yet
     # Languages will be loaded after ChatController completes its initialization
     setup_database
   end
-  
+
   # Add a method to load languages after database is fully set up
   def initialize_languages
     load_languages
   end
-  
+
   def translate(key, language = nil, params = [])
     lang = language || @default_language
-    
+
     begin
       db = db_connection
       result = db.execute("SELECT value FROM translations WHERE language = ? AND key = ?", [lang, key])
       db.close
-      
+
       if result.empty? && lang != @default_language
         # Fall back to default language
         return translate(key, @default_language, params)
@@ -56,7 +56,7 @@ class LanguageManager
       return key
     end
   end
-  
+
   def set_language(username, language_code)
     if @available_languages.include?(language_code)
       begin
@@ -75,16 +75,16 @@ class LanguageManager
       false
     end
   end
-  
+
   def get_user_language(username)
     user_id = get_user_id(username)
     return @default_language unless user_id
-    
+
     begin
       db = db_connection
       result = db.execute("SELECT language FROM user_preferences WHERE user_id = ?", [user_id])
       db.close
-      
+
       if result.empty?
         return @default_language
       else
@@ -95,9 +95,9 @@ class LanguageManager
       return @default_language
     end
   end
-  
+
   private
-  
+
   def create_default_language_file
     default_translations = {
       'en' => {
@@ -149,8 +149,12 @@ class LanguageManager
         'language_not_available' => '⚠️ Language not available. Available languages: %1',
         'available_languages' => 'Available languages: %1',
         'usage_language' => 'Usage /language <code> - Change language (available: %1)',
-        
-        // Add new translations
+
+        # Around line 153, change this:
+        # Add new translations
+
+        # To this:
+        # Add new translations
         'cmd_gdm' => 'Send a private message to any connected user',
         'gdm_received' => 'Global DM from %1: %2',
         'gdm_sent' => 'Global DM to %1: %2',
@@ -223,8 +227,8 @@ class LanguageManager
         'language_not_available' => '⚠️ Langue non disponible. Langues disponibles: %1',
         'available_languages' => 'Langues disponibles: %1',
         'usage_language' => 'Usage /language <code> - Changer de langue (disponible: %1)',
-        
-        // Add new translations
+
+        # Add new translations
         'cmd_gdm' => 'Envoyer un message privé à n\'importe quel utilisateur connecté',
         'gdm_received' => 'Message privé global de %1: %2',
         'gdm_sent' => 'Message privé global à %1: %2',
@@ -249,16 +253,16 @@ class LanguageManager
         'cmd_pendingrequests' => 'Afficher les demandes d\'ami en attente'
       }
     }
-    
+
     # Write default translations to file
     File.write(File.join(@languages_dir, 'default.json'), JSON.pretty_generate(default_translations))
-    
+
     # Create individual language files
     default_translations.each do |lang_code, translations|
       File.write(File.join(@languages_dir, "#{lang_code}.json"), JSON.pretty_generate(translations))
     end
   end
-  
+
   def setup_database
     begin
       # Check if database file exists, if not, just return and let ChatController create it
@@ -267,9 +271,9 @@ class LanguageManager
         puts "Database file doesn't exist yet, waiting for ChatController to create it"
         return
       end
-      
+
       db = db_connection
-      
+
       # Create translations table if it doesn't exist
       db.execute <<-SQL
         CREATE TABLE IF NOT EXISTS translations (
@@ -280,28 +284,28 @@ class LanguageManager
           UNIQUE(language, key)
         );
       SQL
-      
+
       db.close
     rescue => ex
       puts "Database setup error in LanguageManager: #{ex.message}"
     end
   end
-  
+
   def load_languages
     begin
       db = db_connection
-      
+
       # Check if we need to populate translations from JSON files
       count = db.get_first_value("SELECT COUNT(*) FROM translations")
-      
+
       if count == 0
         # Load translations from JSON files
         Dir.glob(File.join(@languages_dir, '*.json')).each do |file|
           next if File.basename(file) == 'default.json' # Skip the template file
-          
+
           lang_code = File.basename(file, '.json')
           translations = JSON.parse(File.read(file))
-          
+
           # For individual language files
           if translations.is_a?(Hash) && !translations.key?('en') && !translations.key?('fr')
             insert_translations(db, lang_code, translations)
@@ -313,24 +317,24 @@ class LanguageManager
           end
         end
       end
-      
+
       # Get available languages
       @available_languages = db.execute("SELECT DISTINCT language FROM translations").flatten
-      
+
       db.close
     rescue => ex
       puts "Error loading languages: #{ex.message}"
       @available_languages = [@default_language]
     end
   end
-  
+
   def insert_translations(db, language_code, translations)
     translations.each do |key, value|
-      db.execute("INSERT OR REPLACE INTO translations (language, key, value) VALUES (?, ?, ?)", 
+      db.execute("INSERT OR REPLACE INTO translations (language, key, value) VALUES (?, ?, ?)",
                 [language_code, key, value])
     end
   end
-  
+
   def get_user_id(username)
     begin
       db = db_connection
@@ -342,17 +346,17 @@ class LanguageManager
       return nil
     end
   end
-  
+
   def db_connection
     db_path = ENV['DB_PATH'] || 'chat_app.db'
     db = SQLite3::Database.new(db_path)
-    
+
     # Set timeout to wait for locks to clear
     db.busy_timeout = 5000
-    
+
     # Enable WAL mode for better concurrency
     db.execute("PRAGMA journal_mode = WAL;")
-    
+
     return db
   end
 end
