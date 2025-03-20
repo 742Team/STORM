@@ -796,157 +796,161 @@ def get_public_rooms
   end
 end
 
-def create_rooms_table(db)
-  db.execute <<-SQL
-    CREATE TABLE IF NOT EXISTS rooms (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT UNIQUE NOT NULL,
-      password TEXT,
-      creator TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      is_persistent BOOLEAN DEFAULT TRUE
-    );
-  SQL
-end
-
-def save_room_to_db(name, password=nil, creator=nil)
-  begin
-    db = db_connection
-    
-    # Check if room already exists in database
-    existing = db.execute("SELECT id FROM rooms WHERE name = ?", [name])
-    
-    if existing.empty?
-      # Insert new room
-      db.execute(
-        "INSERT INTO rooms (name, password, creator, created_at) VALUES (?, ?, ?, ?)",
-        [name, password, creator, Time.now.to_s]
-      )
-    else
-      # Update existing room
-      db.execute(
-        "UPDATE rooms SET password = ?, creator = ? WHERE name = ?",
-        [password, creator, name]
-      )
-    end
-    
-    db.close
-    return true
-  rescue => e
-    puts "Error saving room to database: #{e.message}"
-    return false
+# Ajoutez ces méthodes à l'intérieur de la classe ChatController
+  def create_rooms_table(db)
+    db.execute <<-SQL
+      CREATE TABLE IF NOT EXISTS rooms (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT UNIQUE NOT NULL,
+        password TEXT,
+        creator TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_persistent BOOLEAN DEFAULT TRUE
+      );
+    SQL
   end
-end
 
-def load_rooms_from_db
-  begin
-    db = db_connection
-    
-    # Get all persistent rooms from database
-    rooms = db.execute("SELECT name, password, creator, created_at FROM rooms WHERE is_persistent = TRUE")
-    
-    rooms.each do |room_data|
-      name, password, creator, created_at = room_data
-      
-      # Skip if room already exists in memory
-      next if @chat_rooms.key?(name)
-      
-      # Create room in memory
-      @chat_rooms[name] = ChatRoom.new(name, password, creator)
-      @chat_rooms[name].controller = self  # Set the controller reference
-      @chat_rooms[name].created_at = Time.parse(created_at) rescue Time.now
-    end
-    
-    db.close
-    puts "Loaded #{rooms.size} rooms from database"
-  rescue => e
-    puts "Error loading rooms from database: #{e.message}"
-  end
-end
-
-# Supprimez la méthode dupliquée à la fin du fichier et gardez celle-ci à l'intérieur de la classe
-def get_public_rooms
-  begin
-    db = db_connection
-    
-    # Get all public rooms from database
-    rooms = db.execute("SELECT name, creator FROM rooms WHERE password IS NULL OR password = ''")
-    
-    public_rooms = []
-    
-    rooms.each do |room_data|
-      name, creator = room_data
-      
-      # Get current user count if room is active
-      users_count = @chat_rooms.key?(name) ? @chat_rooms[name].clients.size : 0
-      
-      public_rooms << {
-        name: name,
-        users_count: users_count,
-        creator: creator
-      }
-    end
-    
-    db.close
-    return public_rooms
-  rescue => e
-    puts "Error getting public rooms: #{e.message}"
-    
-    # Fallback to in-memory rooms if database query fails
-    public_rooms = []
-    @chat_rooms.each do |name, room|
-      if room.password.nil? || room.password.empty?
-        public_rooms << {
-          name: name,
-          users_count: room.clients.size,
-          creator: room.creator
-        }
-      end
-    end
-    
-    return public_rooms
-  end
-end
-
-def delete_room(name)
-  if @chat_rooms.key?(name)
-    @chat_rooms.delete(name)
-    
-    # Remove from database
+  def save_room_to_db(name, password=nil, creator=nil)
     begin
       db = db_connection
-      db.execute("DELETE FROM rooms WHERE name = ?", [name])
+      
+      # Check if room already exists in database
+      existing = db.execute("SELECT id FROM rooms WHERE name = ?", [name])
+      
+      if existing.empty?
+        # Insert new room
+        db.execute(
+          "INSERT INTO rooms (name, password, creator, created_at) VALUES (?, ?, ?, ?)",
+          [name, password, creator, Time.now.to_s]
+        )
+      else
+        # Update existing room
+        db.execute(
+          "UPDATE rooms SET password = ?, creator = ? WHERE name = ?",
+          [password, creator, name]
+        )
+      end
+      
       db.close
       return true
     rescue => e
-      puts "Error deleting room from database: #{e.message}"
+      puts "Error saving room to database: #{e.message}"
       return false
     end
   end
-  
-  return false
-end
 
-def refresh_rooms
-  @chat_rooms.each do |_, room|
-    # Clean up any disconnected clients
-    room.clients.delete_if { |_, client| client.nil? || client.socket.closed? }
-  end
-  
-  # Remove empty rooms except 'Main'
-  @chat_rooms.delete_if do |name, room| 
-    if name != 'Main' && room.clients.empty?
-      # Mark as non-persistent in database instead of deleting
-      begin
-        db = db_connection
-        db.execute("UPDATE rooms SET is_persistent = FALSE WHERE name = ?", [name])
-        db.close
-      rescue => e
-        puts "Error updating room persistence: #{e.message}"
+  def load_rooms_from_db
+    begin
+      db = db_connection
+      
+      # Get all persistent rooms from database
+      rooms = db.execute("SELECT name, password, creator, created_at FROM rooms WHERE is_persistent = TRUE")
+      
+      rooms.each do |room_data|
+        name, password, creator, created_at = room_data
+        
+        # Skip if room already exists in memory
+        next if @chat_rooms.key?(name)
+        
+        # Create room in memory
+        @chat_rooms[name] = ChatRoom.new(name, password, creator)
+        @chat_rooms[name].controller = self  # Set the controller reference
+        @chat_rooms[name].created_at = Time.parse(created_at) rescue Time.now
       end
-      true
-    else
-      false
+      
+      db.close
+      puts "Loaded #{rooms.size} rooms from database"
+    rescue => e
+      puts "Error loading rooms from database: #{e.message}"
     end
   end
+
+  def get_public_rooms
+    begin
+      db = db_connection
+      
+      # Get all public rooms from database
+      rooms = db.execute("SELECT name, creator FROM rooms WHERE password IS NULL OR password = ''")
+      
+      public_rooms = []
+      
+      rooms.each do |room_data|
+        name, creator = room_data
+        
+        # Get current user count if room is active
+        users_count = @chat_rooms.key?(name) ? @chat_rooms[name].clients.size : 0
+        
+        public_rooms << {
+          name: name,
+          users_count: users_count,
+          creator: creator
+        }
+      end
+      
+      db.close
+      return public_rooms
+    rescue => e
+      puts "Error getting public rooms: #{e.message}"
+      
+      # Fallback to in-memory rooms if database query fails
+      public_rooms = []
+      @chat_rooms.each do |name, room|
+        if room.password.nil? || room.password.empty?
+          public_rooms << {
+            name: name,
+            users_count: room.clients.size,
+            creator: room.creator
+          }
+        end
+      end
+      
+      return public_rooms
+    end
+  end
+
+  def delete_room(name)
+    if @chat_rooms.key?(name)
+      @chat_rooms.delete(name)
+      
+      # Remove from database
+      begin
+        db = db_connection
+        db.execute("DELETE FROM rooms WHERE name = ?", [name])
+        db.close
+        return true
+      rescue => e
+        puts "Error deleting room from database: #{e.message}"
+        return false
+      end
+    end
+    
+    return false
+  end
+
+  # Assurez-vous que cette méthode est à l'intérieur de la classe
+  def refresh_rooms
+    @chat_rooms.each do |_, room|
+      # Clean up any disconnected clients
+      room.clients.delete_if { |_, client| client.nil? || client.socket.closed? }
+    end
+    
+    # Remove empty rooms except 'Main'
+    @chat_rooms.delete_if do |name, room| 
+      if name != 'Main' && room.clients.empty?
+        # Mark as non-persistent in database instead of deleting
+        begin
+          db = db_connection
+          db.execute("UPDATE rooms SET is_persistent = FALSE WHERE name = ?", [name])
+          db.close
+        rescue => e
+          puts "Error updating room persistence: #{e.message}"
+        end
+        true
+      else
+        false
+      end
+    end
+  end
+
+# Ajoutez ce end pour fermer la classe ChatController
 end
