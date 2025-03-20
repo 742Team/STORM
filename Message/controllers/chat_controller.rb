@@ -692,6 +692,8 @@ def global_direct_message(sender, recipient, message)
     return false
   end
   
+  # Remove this duplicate method implementation
+  def global_direct_message(sender, recipient, message)
   # Chercher le destinataire dans toutes les rooms
   recipient_found = false
   recipient_driver = nil
