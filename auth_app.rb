@@ -288,3 +288,29 @@ get '/uploads/:filename' do
     "File not found"
   end
 end
+
+# Ajouter cet endpoint après les autres routes
+get '/connected-users' do
+  content_type :json
+  cache_control :no_cache, :no_store
+  
+  chat_controller = settings.chat_controller
+  
+  # Récupérer tous les utilisateurs connectés dans toutes les rooms
+  connected_users = []
+  chat_controller.chat_rooms.each do |room_name, room|
+    room.clients.keys.each do |username|
+      connected_users << {
+        username: username,
+        room: room_name,
+        is_creator: (room.creator == username)
+      } unless connected_users.any? { |u| u[:username] == username }
+    end
+  end
+  
+  {
+    success: true,
+    timestamp: Time.now.to_i,
+    users: connected_users
+  }.to_json
+end

@@ -352,4 +352,375 @@ class ChatController
       return file_path
     end
   end
+
+  # Ajouter cette méthode dans la classe ChatController
+  def global_direct_message(sender, recipient, message)
+  # Chercher le destinataire dans toutes les rooms
+  recipient_found = false
+  recipient_driver = nil
+  
+  @chat_rooms.each do |room_name, room|
+    if room.clients.key?(recipient)
+      recipient_driver = room.clients[recipient]
+      recipient_found = true
+      break
+    end
+  end
+  
+  # Trouver la room de l'expéditeur pour lui envoyer une confirmation
+  sender_driver = nil
+  
+  @chat_rooms.each do |room_name, room|
+    if room.clients.key?(sender)
+      sender_driver = room.clients[sender]
+      break
+    end
+  end
+  
+  if recipient_found && sender_driver && recipient_driver
+    # Format pour le destinataire
+    recipient_driver.text(translate('gdm_received', recipient, [sender, message]))
+    # Format pour l'expéditeur
+    sender_driver.text(translate('gdm_sent', sender, [recipient, message]))
+    return true
+  else
+    sender_driver.text(translate('user_not_connected', sender, [recipient])) if sender_driver
+    return false
+  end
+end
+# Ajouter ces méthodes à la classe ChatController
+
+def setup_friends_tables
+  begin
+    db = db_connection
+    
+    # Créer la table friend_requests
+    db.execute <<-SQL
+      CREATE TABLE IF NOT EXISTS friend_requests (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sender_id INTEGER NOT NULL,
+        receiver_id INTEGER NOT NULL,
+        status TEXT DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(sender_id, receiver_id),
+        FOREIGN KEY (sender_id) REFERENCES users(id),
+        FOREIGN KEY (receiver_id) REFERENCES users(id)
+      );
+    SQL
+    
+    # Créer la table friends
+    db.execute <<-SQL
+      CREATE TABLE IF NOT EXISTS friends (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user1_id INTEGER NOT NULL,
+        user2_id INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user1_id, user2_id),
+        FOREIGN KEY (user1_id) REFERENCES users(id),
+        FOREIGN KEY (user2_id) REFERENCES users(id)
+      );
+    SQL
+    
+    db.close
+  rescue => e
+    puts "Error setting up friends tables: #{e.message}"
+  end
+end
+
+def send_friend_request(sender, receiver)
+  return false if sender == receiver
+  
+  begin
+    db = db_connection
+    
+    sender_id = get_user_id(sender)
+    receiver_id = get_user_id(receiver)
+    
+    return false unless sender_id && receiver_id
+    
+    # Vérifier s'ils sont déjà amis
+    friends_check = db.execute("SELECT id FROM friends WHERE 
+                              (user1_id = ? AND user2_id = ?) OR 
+                              (user1_id = ? AND user2_id = ?)", 
+                              [sender_id, receiver_id, receiver_id, sender_id])
+    
+    if !friends_check.empty?
+      db.close
+      return 'already_friends'
+    end
+    
+    # Vérifier s'il y a déjà une demande en attente
+    request_check = db.execute("SELECT id, status FROM friend_requests WHERE 
+                              (sender_id = ? AND receiver_id = ?) OR 
+                              (sender_id = ? AND receiver_id = ?)", 
+                              [sender_id, receiver_id, receiver_id, sender_id])
+    
+    if !request_check.empty?
+      status = request_check[0][1]
+      if status == 'pending'
+        # Si l'autre personne a déjà envoyé une demande, on l'accepte automatiquement
+        if db.execute("SELECT id FROM friend_requests WHERE sender_id = ? AND receiver_id = ?", 
+                    [receiver_id, sender_id]).any?
+          accept_friend_request(receiver, sender)
+          db.close
+          return 'auto_accepted'
+        else
+          db.close
+          return 'already_sent'
+        end
+      end
+    end
+    
+    # Envoyer la demande
+    db.execute("INSERT INTO friend_requests (sender_id, receiver_id, status) VALUES (?, ?, 'pending')", 
+              [sender_id, receiver_id])
+    
+    # Notifier le destinataire s'il est connecté
+    notify_user(receiver, translate('friend_request_received', receiver, [sender]))
+    
+    db.close
+    return 'sent'
+  rescue => e
+    puts "Error sending friend request: #{e.message}"
+    return false
+  end
+end
+
+def accept_friend_request(receiver, sender)
+  begin
+    db = db_connection
+    
+    receiver_id = get_user_id(receiver)
+    sender_id = get_user_id(sender)
+    
+    return false unless receiver_id && sender_id
+    
+    # Vérifier si la demande existe
+    request = db.execute("SELECT id FROM friend_requests WHERE 
+                        sender_id = ? AND receiver_id = ? AND status = 'pending'", 
+                        [sender_id, receiver_id])
+    
+    if request.empty?
+      db.close
+      return false
+    end
+    
+    # Mettre à jour le statut de la demande
+    db.execute("UPDATE friend_requests SET status = 'accepted', updated_at = CURRENT_TIMESTAMP 
+              WHERE sender_id = ? AND receiver_id = ?", 
+              [sender_id, receiver_id])
+    
+    # Ajouter l'amitié (toujours stocker avec l'ID le plus petit en premier pour faciliter les requêtes)
+    if sender_id < receiver_id
+      db.execute("INSERT OR IGNORE INTO friends (user1_id, user2_id) VALUES (?, ?)", 
+                [sender_id, receiver_id])
+    else
+      db.execute("INSERT OR IGNORE INTO friends (user1_id, user2_id) VALUES (?, ?)", 
+                [receiver_id, sender_id])
+    end
+    
+    # Notifier l'expéditeur s'il est connecté
+    notify_user(sender, translate('friend_request_accepted', sender, [receiver]))
+    
+    db.close
+    return true
+  rescue => e
+    puts "Error accepting friend request: #{e.message}"
+    return false
+  end
+end
+
+def decline_friend_request(receiver, sender)
+  begin
+    db = db_connection
+    
+    receiver_id = get_user_id(receiver)
+    sender_id = get_user_id(sender)
+    
+    return false unless receiver_id && sender_id
+    
+    # Vérifier si la demande existe
+    request = db.execute("SELECT id FROM friend_requests WHERE 
+                        sender_id = ? AND receiver_id = ? AND status = 'pending'", 
+                        [sender_id, receiver_id])
+    
+    if request.empty?
+      db.close
+      return false
+    end
+    
+    # Mettre à jour le statut de la demande
+    db.execute("UPDATE friend_requests SET status = 'declined', updated_at = CURRENT_TIMESTAMP 
+              WHERE sender_id = ? AND receiver_id = ?", 
+              [sender_id, receiver_id])
+    
+    db.close
+    return true
+  rescue => e
+    puts "Error declining friend request: #{e.message}"
+    return false
+  end
+end
+
+def remove_friend(user1, user2)
+  begin
+    db = db_connection
+    
+    user1_id = get_user_id(user1)
+    user2_id = get_user_id(user2)
+    
+    return false unless user1_id && user2_id
+    
+    # Supprimer l'amitié (dans les deux sens)
+    db.execute("DELETE FROM friends WHERE 
+              (user1_id = ? AND user2_id = ?) OR 
+              (user1_id = ? AND user2_id = ?)", 
+              [user1_id, user2_id, user2_id, user1_id])
+    
+    # Supprimer les demandes d'ami (dans les deux sens)
+    db.execute("DELETE FROM friend_requests WHERE 
+              (sender_id = ? AND receiver_id = ?) OR 
+              (sender_id = ? AND receiver_id = ?)", 
+              [user1_id, user2_id, user2_id, user1_id])
+    
+    db.close
+    return true
+  rescue => e
+    puts "Error removing friend: #{e.message}"
+    return false
+  end
+end
+
+def get_friends(username)
+  begin
+    db = db_connection
+    
+    user_id = get_user_id(username)
+    return [] unless user_id
+    
+    # Récupérer la liste des amis
+    result = db.execute(<<-SQL, [user_id, user_id])
+      SELECT u.username 
+      FROM friends f
+      JOIN users u ON (f.user1_id = u.id OR f.user2_id = u.id)
+      WHERE (f.user1_id = ? OR f.user2_id = ?) 
+      AND u.id != ?
+    SQL
+    
+    db.close
+    return result.flatten
+  rescue => e
+    puts "Error getting friends: #{e.message}"
+    return []
+  end
+end
+
+def get_pending_requests(username)
+  begin
+    db = db_connection
+    
+    user_id = get_user_id(username)
+    return [] unless user_id
+    
+    # Récupérer les demandes en attente
+    result = db.execute(<<-SQL, [user_id])
+      SELECT u.username 
+      FROM friend_requests fr
+      JOIN users u ON fr.sender_id = u.id
+      WHERE fr.receiver_id = ? AND fr.status = 'pending'
+    SQL
+    
+    db.close
+    return result.flatten
+  rescue => e
+    puts "Error getting pending requests: #{e.message}"
+    return []
+  end
+end
+
+def are_friends(user1, user2)
+  begin
+    db = db_connection
+    
+    user1_id = get_user_id(user1)
+    user2_id = get_user_id(user2)
+    
+    return false unless user1_id && user2_id
+    
+    # Vérifier s'ils sont amis
+    result = db.execute("SELECT id FROM friends WHERE 
+                      (user1_id = ? AND user2_id = ?) OR 
+                      (user1_id = ? AND user2_id = ?)", 
+                      [user1_id, user2_id, user2_id, user1_id])
+    
+    db.close
+    return !result.empty?
+  rescue => e
+    puts "Error checking friendship: #{e.message}"
+    return false
+  end
+end
+
+def notify_user(username, message)
+  # Trouver l'utilisateur dans toutes les rooms et lui envoyer un message
+  @chat_rooms.each do |_, room|
+    if room.clients.key?(username)
+      room.clients[username].text(message)
+      return true
+    end
+  end
+  return false
+end
+
+# Modifier la méthode global_direct_message pour vérifier l'amitié
+def global_direct_message(sender, recipient, message)
+  # Vérifier s'ils sont amis
+  unless are_friends(sender, recipient)
+    sender_driver = nil
+    @chat_rooms.each do |_, room|
+      if room.clients.key?(sender)
+        sender_driver = room.clients[sender]
+        break
+      end
+    end
+    
+    if sender_driver
+      sender_driver.text(translate('not_friends', sender, [recipient]))
+    end
+    return false
+  end
+  
+  # Chercher le destinataire dans toutes les rooms
+  recipient_found = false
+  recipient_driver = nil
+  
+  @chat_rooms.each do |room_name, room|
+    if room.clients.key?(recipient)
+      recipient_driver = room.clients[recipient]
+      recipient_found = true
+      break
+    end
+  end
+  
+  # Trouver la room de l'expéditeur pour lui envoyer une confirmation
+  sender_driver = nil
+  
+  @chat_rooms.each do |room_name, room|
+    if room.clients.key?(sender)
+      sender_driver = room.clients[sender]
+      break
+    end
+  end
+  
+  if recipient_found && sender_driver && recipient_driver
+    # Format pour le destinataire
+    recipient_driver.text(translate('gdm_received', recipient, [sender, message]))
+    # Format pour l'expéditeur
+    sender_driver.text(translate('gdm_sent', sender, [recipient, message]))
+    return true
+  else
+    sender_driver.text(translate('user_not_connected', sender, [recipient])) if sender_driver
+    return false
+  end
 end

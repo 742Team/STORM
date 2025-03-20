@@ -148,7 +148,31 @@ class LanguageManager
         'language_changed' => 'Language changed to %1',
         'language_not_available' => '⚠️ Language not available. Available languages: %1',
         'available_languages' => 'Available languages: %1',
-        'usage_language' => 'Usage /language <code> - Change language (available: %1)'
+        'usage_language' => 'Usage /language <code> - Change language (available: %1)',
+        
+        // Add new translations
+        'cmd_gdm' => 'Send a private message to any connected user',
+        'gdm_received' => 'Global DM from %1: %2',
+        'gdm_sent' => 'Global DM to %1: %2',
+        'user_not_connected' => '⚠️ User %1 is not connected',
+        'friend_request_sent' => '✅ Friend request sent to %1',
+        'friend_request_received' => '🔔 %1 wants to be your friend. Type /acceptfriend %1 to accept',
+        'friend_request_accepted' => '✅ You are now friends with %1',
+        'friend_request_declined' => '❌ Friend request from %1 declined',
+        'friend_request_not_found' => '⚠️ No friend request from %1 found',
+        'already_friends' => '⚠️ You are already friends with %1',
+        'not_friends' => '⚠️ You are not friends with %1',
+        'friend_removed' => '✅ %1 removed from your friends list',
+        'friends_list' => 'Your friends: %1',
+        'no_friends' => 'You have no friends in your list',
+        'pending_requests' => 'Pending friend requests: %1',
+        'no_pending_requests' => 'No pending friend requests',
+        'cmd_addfriend' => 'Send a friend request to a user',
+        'cmd_acceptfriend' => 'Accept a friend request',
+        'cmd_declinefriend' => 'Decline a friend request',
+        'cmd_removefriend' => 'Remove a user from your friends list',
+        'cmd_friends' => 'Show your friends list',
+        'cmd_pendingrequests' => 'Show pending friend requests'
       },
       'fr' => {
         'welcome' => 'Bienvenue %1 ! Tapez /help pour la liste des commandes',
@@ -198,7 +222,31 @@ class LanguageManager
         'language_changed' => 'Langue changée en %1',
         'language_not_available' => '⚠️ Langue non disponible. Langues disponibles: %1',
         'available_languages' => 'Langues disponibles: %1',
-        'usage_language' => 'Usage /language <code> - Changer de langue (disponible: %1)'
+        'usage_language' => 'Usage /language <code> - Changer de langue (disponible: %1)',
+        
+        // Add new translations
+        'cmd_gdm' => 'Envoyer un message privé à n\'importe quel utilisateur connecté',
+        'gdm_received' => 'Message privé global de %1: %2',
+        'gdm_sent' => 'Message privé global à %1: %2',
+        'user_not_connected' => '⚠️ L\'utilisateur %1 n\'est pas connecté',
+        'friend_request_sent' => '✅ Demande d\'ami envoyée à %1',
+        'friend_request_received' => '🔔 %1 veut être votre ami. Tapez /acceptfriend %1 pour accepter',
+        'friend_request_accepted' => '✅ Vous êtes maintenant ami avec %1',
+        'friend_request_declined' => '❌ Demande d\'ami de %1 refusée',
+        'friend_request_not_found' => '⚠️ Aucune demande d\'ami de %1 trouvée',
+        'already_friends' => '⚠️ Vous êtes déjà ami avec %1',
+        'not_friends' => '⚠️ Vous n\'êtes pas ami avec %1',
+        'friend_removed' => '✅ %1 supprimé de votre liste d\'amis',
+        'friends_list' => 'Vos amis: %1',
+        'no_friends' => 'Vous n\'avez pas d\'amis dans votre liste',
+        'pending_requests' => 'Demandes d\'ami en attente: %1',
+        'no_pending_requests' => 'Aucune demande d\'ami en attente',
+        'cmd_addfriend' => 'Envoyer une demande d\'ami à un utilisateur',
+        'cmd_acceptfriend' => 'Accepter une demande d\'ami',
+        'cmd_declinefriend' => 'Refuser une demande d\'ami',
+        'cmd_removefriend' => 'Supprimer un utilisateur de votre liste d\'amis',
+        'cmd_friends' => 'Afficher votre liste d\'amis',
+        'cmd_pendingrequests' => 'Afficher les demandes d\'ami en attente'
       }
     }
     
