@@ -754,21 +754,46 @@ end
 
 # Move this method inside the ChatController class, before the final end
 def get_public_rooms
-  public_rooms = []
-  @chat_rooms.each do |name, room|
-    # Inclure uniquement les salons sans mot de passe
-    if room.password.nil? || room.password.empty?
+  begin
+    db = db_connection
+    
+    # Get all public rooms from database
+    rooms = db.execute("SELECT name, creator FROM rooms WHERE password IS NULL OR password = ''")
+    
+    public_rooms = []
+    
+    rooms.each do |room_data|
+      name, creator = room_data
+      
+      # Get current user count if room is active
+      users_count = @chat_rooms.key?(name) ? @chat_rooms[name].clients.size : 0
+      
       public_rooms << {
         name: name,
-        users_count: room.clients.size,
-        creator: room.creator
+        users_count: users_count,
+        creator: creator
       }
     end
+    
+    db.close
+    return public_rooms
+  rescue => e
+    puts "Error getting public rooms: #{e.message}"
+    
+    # Fallback to in-memory rooms if database query fails
+    public_rooms = []
+    @chat_rooms.each do |name, room|
+      if room.password.nil? || room.password.empty?
+        public_rooms << {
+          name: name,
+          users_count: room.clients.size,
+          creator: room.creator
+        }
+      end
+    end
+    
+    return public_rooms
   end
-  public_rooms
-end
-
-# Ajoutez ce end pour fermer la classe ChatController
 end
 
 def create_rooms_table(db)
@@ -840,56 +865,48 @@ def load_rooms_from_db
 end
 
 # Supprimez la méthode dupliquée à la fin du fichier et gardez celle-ci à l'intérieur de la classe
-# Récupération de la liste des salons publics
-#
-# Je vois que vous avez déjà une méthode `get_public_rooms` dans votre `ChatController`, mais il y a un problème de duplication et de placement. Voici comment vous pouvez corriger cela et l'utiliser pour récupérer la liste des salons publics :
-#
-# 1. D'abord, corrigeons la méthode `get_public_rooms` dans votre `ChatController` :
-```ruby
-# Supprimez la méthode dupliquée à la fin du fichier et gardez celle-ci à l'intérieur de la classe
-  def get_public_rooms
-    begin
-      db = db_connection
+def get_public_rooms
+  begin
+    db = db_connection
+    
+    # Get all public rooms from database
+    rooms = db.execute("SELECT name, creator FROM rooms WHERE password IS NULL OR password = ''")
+    
+    public_rooms = []
+    
+    rooms.each do |room_data|
+      name, creator = room_data
       
-      # Get all public rooms from database
-      rooms = db.execute("SELECT name, creator FROM rooms WHERE password IS NULL OR password = ''")
+      # Get current user count if room is active
+      users_count = @chat_rooms.key?(name) ? @chat_rooms[name].clients.size : 0
       
-      public_rooms = []
-      
-      rooms.each do |room_data|
-        name, creator = room_data
-        
-        # Get current user count if room is active
-        users_count = @chat_rooms.key?(name) ? @chat_rooms[name].clients.size : 0
-        
+      public_rooms << {
+        name: name,
+        users_count: users_count,
+        creator: creator
+      }
+    end
+    
+    db.close
+    return public_rooms
+  rescue => e
+    puts "Error getting public rooms: #{e.message}"
+    
+    # Fallback to in-memory rooms if database query fails
+    public_rooms = []
+    @chat_rooms.each do |name, room|
+      if room.password.nil? || room.password.empty?
         public_rooms << {
           name: name,
-          users_count: users_count,
-          creator: creator
+          users_count: room.clients.size,
+          creator: room.creator
         }
       end
-      
-      db.close
-      return public_rooms
-    rescue => e
-      puts "Error getting public rooms: #{e.message}"
-      
-      # Fallback to in-memory rooms if database query fails
-      public_rooms = []
-      @chat_rooms.each do |name, room|
-        if room.password.nil? || room.password.empty?
-          public_rooms << {
-            name: name,
-            users_count: room.clients.size,
-            creator: room.creator
-          }
-        end
-      end
-      
-      return public_rooms
     end
+    
+    return public_rooms
   end
-```
+end
 
 def delete_room(name)
   if @chat_rooms.key?(name)
