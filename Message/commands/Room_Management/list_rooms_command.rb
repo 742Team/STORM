@@ -12,19 +12,19 @@ class ListRoomsCommand < BaseCommand
     public_rooms = @controller.get_public_rooms
     
     if public_rooms.empty?
-      driver.text(@controller.translate('no_public_rooms', username))
+      driver.text(@controller.translate('no_public_rooms', @controller.get_user_language(username)))
       return nil
     end
     
     # Format the output
-    message = @controller.translate('public_rooms_header', username) + "\n"
+    message = @controller.translate('public_rooms_header', @controller.get_user_language(username)) + "\n"
     public_rooms.each do |room|
       users_text = room[:users_count] == 1 ? 
-                  @controller.translate('one_user', username) : 
-                  @controller.translate('multiple_users', username, [room[:users_count]])
+                  @controller.translate('one_user', @controller.get_user_language(username)) : 
+                  @controller.translate('multiple_users', @controller.get_user_language(username), [room[:users_count]])
       
       message += "• #{room[:name]} (#{users_text}"
-      message += ", #{@controller.translate('created_by', username, [room[:creator]])}" if room[:creator]
+      message += ", #{@controller.translate('created_by', @controller.get_user_language(username), [room[:creator]])}" if room[:creator]
       message += ")\n"
     end
     
