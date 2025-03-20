@@ -147,7 +147,7 @@ class ChatRoom
       "/cpd <#{@controller.translate('password', username)}>                  - #{@controller.translate('cmd_cpd', username)}",
       "/ban <#{@controller.translate('username', username)}>                - #{@controller.translate('cmd_ban', username)}",
       "/kick <#{@controller.translate('username', username)}>               - #{@controller.translate('cmd_kick', username)}",
-      # Dans la méthode commands, ajouter cette ligne après la ligne du /dm
+      "/listrooms                  - #{@controller.translate('cmd_listrooms', username)}",
       "/gdm <#{@controller.translate('username', username)}> <#{@controller.translate('message', username)}>           - #{@controller.translate('cmd_gdm', username)}",
       "/color <#{@controller.translate('color', username)}>             - #{@controller.translate('cmd_color', username)}",
       "/background <url>            - #{@controller.translate('cmd_background', username)}",

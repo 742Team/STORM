@@ -360,3 +360,19 @@ class LanguageManager
     return db
   end
 end
+
+# Add these translations to the 'en' section
+'public_rooms_header' => 'Available public rooms:',
+'no_public_rooms' => 'No public rooms available.',
+'one_user' => '1 user',
+'multiple_users' => '%1 users',
+'created_by' => 'created by %1',
+'cmd_listrooms' => 'List all public rooms',
+
+# Add these translations to the 'fr' section
+'public_rooms_header' => 'Salons publics disponibles:',
+'no_public_rooms' => 'Aucun salon public disponible.',
+'one_user' => '1 utilisateur',
+'multiple_users' => '%1 utilisateurs',
+'created_by' => 'créé par %1',
+'cmd_listrooms' => 'Liste tous les salons publics',
