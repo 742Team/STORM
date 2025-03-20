@@ -149,31 +149,22 @@ class ChatController
     SQL
   end
 
+  # Correction de la méthode create_room qui est définie deux fois
   def create_room(name, password=nil, creator=nil)
-    def create_room(name, password=nil, creator=nil)
-      return nil if @chat_rooms.key?(name)
-      
-      room = ChatRoom.new(name, password, creator)
-      room.controller = self  # Set the controller reference
-      @chat_rooms[name] = room
-      
-      # Save to database if it's not a temporary room
-      save_room_to_db(name, password, creator)
-      
-      return room
-    end
     name = name.to_s.force_encoding('UTF-8')
     creator = creator.to_s.force_encoding('UTF-8') if creator
     
     return nil if @chat_rooms.key?(name)
     
-    @chat_rooms[name] = ChatRoom.new(name, password, creator)
+    room = ChatRoom.new(name, password, creator)
+    room.controller = self  # Set the controller reference
+    @chat_rooms[name] = room
     @chat_rooms[name].created_at = Time.now
     
-    # Save room to database for persistence
+    # Save to database if it's not a temporary room
     save_room_to_db(name, password, creator)
     
-    return @chat_rooms[name]
+    return room
   end
 
   def handle_message(driver, chat_room, username, message)
