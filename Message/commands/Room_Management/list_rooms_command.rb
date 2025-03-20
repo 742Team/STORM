@@ -9,17 +9,7 @@ class ListRoomsCommand < BaseCommand
   
   def execute(parts, driver, chat_room, username)
     # Get all public rooms
-    public_rooms = []
-    @controller.chat_rooms.each do |name, room|
-      # Include only rooms without password
-      if room.password.nil? || room.password.empty?
-        public_rooms << {
-          name: name,
-          users_count: room.clients.size,
-          creator: room.creator
-        }
-      end
-    end
+    public_rooms = @controller.get_public_rooms
     
     if public_rooms.empty?
       driver.text(@controller.translate('no_public_rooms', username))

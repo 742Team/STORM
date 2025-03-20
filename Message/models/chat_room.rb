@@ -133,6 +133,7 @@ class ChatRoom
     @clients.keys.join(', ')
   end
 
+  # In the commands method, add this line:
   def commands
     username = nil # This will use default language
     
