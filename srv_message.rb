@@ -116,3 +116,23 @@ loop do
     end
   end
 end
+
+
+# Ajouter cet endpoint pour récupérer les salons publics
+get '/api/public_rooms' do
+  content_type :json
+  ChatController.instance.get_public_rooms.to_json
+end
+
+
+# Configurer CORS pour permettre les requêtes cross-origin
+before do
+  response.headers['Access-Control-Allow-Origin'] = '*'
+  response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+  response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+end
+
+# Gérer les requêtes OPTIONS pour CORS
+options '*' do
+  200
+end

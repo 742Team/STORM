@@ -730,3 +730,30 @@ end
 
 # Ajoutez ce end pour fermer la classe ChatController
 end
+
+# Récupération de la liste des groupes (threads) sans mot de passe
+
+Pour récupérer la liste des groupes (threads) sans mot de passe depuis votre frontend, vous devez implémenter une méthode dans votre contrôleur qui expose cette information via une API.
+
+Voici comment vous pourriez procéder:
+
+## 1. Ajouter une méthode au ChatController
+
+Vous devez d'abord ajouter une méthode au `ChatController` qui renvoie la liste des salons publics (sans mot de passe):
+```ruby
+# Ajouter cette méthode pour obtenir la liste des salons publics
+def get_public_rooms
+  public_rooms = []
+  @chat_rooms.each do |name, room|
+    # Inclure uniquement les salons sans mot de passe
+    if room.password.nil? || room.password.empty?
+      public_rooms << {
+        name: name,
+        users_count: room.clients.size,
+        creator: room.creator
+      }
+    end
+  end
+  public_rooms
+end
+```
