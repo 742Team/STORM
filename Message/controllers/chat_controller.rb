@@ -354,40 +354,41 @@ class ChatController
   end
 
   # Ajouter cette méthode dans la classe ChatController
+  # Properly indented method
   def global_direct_message(sender, recipient, message)
-  # Chercher le destinataire dans toutes les rooms
-  recipient_found = false
-  recipient_driver = nil
-  
-  @chat_rooms.each do |room_name, room|
-    if room.clients.key?(recipient)
-      recipient_driver = room.clients[recipient]
-      recipient_found = true
-      break
+    # Chercher le destinataire dans toutes les rooms
+    recipient_found = false
+    recipient_driver = nil
+    
+    @chat_rooms.each do |room_name, room|
+      if room.clients.key?(recipient)
+        recipient_driver = room.clients[recipient]
+        recipient_found = true
+        break
+      end
+    end
+    
+    # Trouver la room de l'expéditeur pour lui envoyer une confirmation
+    sender_driver = nil
+    
+    @chat_rooms.each do |room_name, room|
+      if room.clients.key?(sender)
+        sender_driver = room.clients[sender]
+        break
+      end
+    end
+    
+    if recipient_found && sender_driver && recipient_driver
+      # Format pour le destinataire
+      recipient_driver.text(translate('gdm_received', recipient, [sender, message]))
+      # Format pour l'expéditeur
+      sender_driver.text(translate('gdm_sent', sender, [recipient, message]))
+      return true
+    else
+      sender_driver.text(translate('user_not_connected', sender, [recipient])) if sender_driver
+      return false
     end
   end
-  
-  # Trouver la room de l'expéditeur pour lui envoyer une confirmation
-  sender_driver = nil
-  
-  @chat_rooms.each do |room_name, room|
-    if room.clients.key?(sender)
-      sender_driver = room.clients[sender]
-      break
-    end
-  end
-  
-  if recipient_found && sender_driver && recipient_driver
-    # Format pour le destinataire
-    recipient_driver.text(translate('gdm_received', recipient, [sender, message]))
-    # Format pour l'expéditeur
-    sender_driver.text(translate('gdm_sent', sender, [recipient, message]))
-    return true
-  else
-    sender_driver.text(translate('user_not_connected', sender, [recipient])) if sender_driver
-    return false
-  end
-end
 # Ajouter ces méthodes à la classe ChatController
 
 def setup_friends_tables
