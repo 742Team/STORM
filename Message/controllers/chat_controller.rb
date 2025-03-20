@@ -714,6 +714,8 @@ def global_direct_message(sender, recipient, message)
     end
   end
   
+  # Après la dernière méthode global_direct_message
+  
   if recipient_found && sender_driver && recipient_driver
     # Format pour le destinataire
     recipient_driver.text(translate('gdm_received', recipient, [sender, message]))
@@ -724,4 +726,7 @@ def global_direct_message(sender, recipient, message)
     sender_driver.text(translate('user_not_connected', sender, [recipient])) if sender_driver
     return false
   end
+end
+
+# Ajoutez ce end pour fermer la classe ChatController
 end
