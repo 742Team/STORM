@@ -40,7 +40,7 @@ The easiest way to run STORM is using Docker:
 
 ```bash
 # Clone this repository
-git clone https://github.com/yourusername/STORM.git
+git clone https://github.com/742Team/STORM.git
 
 # Go into the repository
 cd STORM
@@ -54,7 +54,7 @@ cd STORM
 ```bash
 
 # Clone this repository
-git clone https://github.com/yourusername/STORM.git
+git clone https://github.com/742Team/STORM.git
 
 # Go into the repository
 cd STORM
