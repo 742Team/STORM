@@ -3,6 +3,7 @@
 # Use current directory instead of hardcoded path
 CURRENT_DIR=$(pwd)
 
+docker system prune -a -f --volumes
 docker rm -f hermes_container 2>/dev/null
 
 # Create Gemfile with specific sqlite3 version to avoid build issues

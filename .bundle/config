@@ -1,0 +1,3 @@
+---
+BUNDLE_BUILD__SQLITE3: "--with-sqlite3-dir=/ucrt64 --with-cflags='-Wno-error=incompatible-function-pointer-types -Wno-error=int-conversion'"
+BUNDLE_BUILD__TAGLIB___RUBY: "--with-tag-dir=/ucrt64"

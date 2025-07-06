@@ -4,6 +4,7 @@ require_relative '../models/chat_room'
 require_relative './command_handler'
 require_relative './user_manager'
 require_relative './preference_manager'
+require_relative './profile_manager'
 require_relative './language_manager'
 require 'singleton'
 require 'fileutils'
@@ -64,6 +65,8 @@ class ChatController
     # Break the circular dependency by deferring UserManager initialization
     # We'll initialize it after the ChatController instance is fully created
     @user_manager = nil
+
+    @profile_manager = nil
     
     # Create command handler without UserManager for now
     @command_handler = CommandHandler.new(self, nil, @preference_manager, @language_manager)
@@ -76,6 +79,8 @@ class ChatController
     
     # Set the user_manager in the preference_manager
     @preference_manager.set_user_manager(@user_manager)
+
+    @profile_manager = ProfileManager.new(self)
     
     # Setup database first
     setup_database
