@@ -58,3 +58,40 @@ class App < Sinatra::Base
 end
 
 puts "Upload server started on port 4567"
+
+# Ajoutez cet endpoint dans la classe App
+app.get '/api/rooms/public' do
+  content_type :json
+  
+  # Utiliser la méthode get_public_rooms du ChatController
+  public_rooms = ChatController.instance.get_public_rooms
+  
+  # Retourner les données au format JSON
+  public_rooms.to_json
+end
+
+app.post '/api/rooms/create' do
+  content_type :json
+  
+  # Récupérer les données de la requête
+  data = JSON.parse(request.body.read)
+  name = data['name']
+  password = data['password']
+  
+  # Vérifier si l'utilisateur est authentifié
+  # (vous devrez adapter cette partie selon votre système d'authentification)
+  username = session[:username]
+  
+  if username
+    # Créer le salon
+    room = ChatController.instance.create_room(name, password, username)
+    
+    if room
+      { success: true }.to_json
+    else
+      { success: false, error: 'Le salon existe déjà' }.to_json
+    end
+  else
+    { success: false, error: 'Vous devez être connecté' }.to_json
+  end
+end
