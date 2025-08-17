@@ -1,5 +1,5 @@
 source 'https://rubygems.org'
-gem 'sqlite3', '~> 1.4.0'  # Using an older version that's more compatible
+gem 'sqlite3', '~> 1.6.0'  # Using a version compatible with Ruby 2.6
 gem 'sinatra', '~> 3.0'
 gem 'bcrypt'
 gem 'colorize'
@@ -7,4 +7,4 @@ gem 'websocket-driver'
 gem 'webrick'
 gem 'rack'
 gem 'mini_magick'  # For image processing
-gem 'taglib-ruby', '~> 1.1.0'
+# gem 'taglib-ruby', '~> 1.1.0'  # Commented out due to compilation issues

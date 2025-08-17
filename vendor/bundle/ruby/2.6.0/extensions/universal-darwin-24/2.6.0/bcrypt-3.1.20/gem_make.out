@@ -1,0 +1,24 @@
+current directory: /Users/dalm1-tt/progra/STORM/vendor/bundle/ruby/2.6.0/gems/bcrypt-3.1.20/ext/mri
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/bin/ruby -I /System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0 -r ./siteconf20250817-38217-zf7oez.rb extconf.rb
+creating Makefile
+
+current directory: /Users/dalm1-tt/progra/STORM/vendor/bundle/ruby/2.6.0/gems/bcrypt-3.1.20/ext/mri
+make "DESTDIR=" clean
+
+current directory: /Users/dalm1-tt/progra/STORM/vendor/bundle/ruby/2.6.0/gems/bcrypt-3.1.20/ext/mri
+make "DESTDIR="
+compiling bcrypt_ext.c
+compiling crypt_blowfish.c
+xcrun clang  -D__SKIP_GNU -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE -D_DARWIN_UNLIMITED_SELECT -D_REENTRANT    -c -o x86.o x86.S
+compiling crypt_gensalt.c
+compiling wrapper.c
+wrapper.c:182:60: warning: declaration of 'struct crypt_data' will not be visible outside of this function [-Wvisibility]
+  182 | char *crypt_r(const char *key, const char *setting, struct crypt_data *data)
+      |                                                            ^
+1 warning generated.
+linking shared-object bcrypt_ext.bundle
+ld: warning: search path '/AppleInternal/Library/BuildRoots/d187755d-b9a3-11ef-83e5-aabfac210453/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.3.Internal.sdk/usr/local/lib' not found
+
+current directory: /Users/dalm1-tt/progra/STORM/vendor/bundle/ruby/2.6.0/gems/bcrypt-3.1.20/ext/mri
+make "DESTDIR=" install
+/usr/bin/install -c -m 0755 bcrypt_ext.bundle ./.gem.20250817-38217-14m79bu
