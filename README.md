@@ -4,6 +4,10 @@ STORM MICRO
 
 ![Capture d’écran 2025-03-08 à 22 33 33](https://github.com/742Team/STORM/blob/1.6.8/hermes.png)
 
+![Capture d’écran 2025-03-08 à 22 33 33](https://github.com/742Team/STORM/blob/1.6.8/hermes-logs-1.png)
+
+![Capture d’écran 2025-03-08 à 22 33 33](https://github.com/742Team/STORM/blob/1.6.8/hermes-logs-2.png)
+
 
  FONCTIONNALITÉS PRINCIPALES
 
