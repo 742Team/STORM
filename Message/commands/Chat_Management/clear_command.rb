@@ -11,7 +11,7 @@ class ClearCommand < BaseCommand
     chat_room.history.clear
     chat_room.broadcast_special("CLEAR_LOGS|")
     driver.text("|| Logs cleared.")
-    driver.text("|| ⚠️ Connected to WS server")
+    driver.text("|| ⚠️ Connected to ")
     nil
   end
 end

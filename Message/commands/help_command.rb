@@ -13,7 +13,7 @@ class HelpCommand < BaseCommand
     commands_by_category = command_handler.get_all_commands_with_categories
     
     # Format and display commands
-    driver.text("📋 Available Commands:")
+    driver.text("⚪️ Available Commands")
     
     # Sort categories alphabetically
     sorted_categories = commands_by_category.keys.sort

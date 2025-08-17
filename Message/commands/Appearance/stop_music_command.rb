@@ -10,7 +10,7 @@ class StopMusicCommand < BaseCommand
   def execute(parts, driver, chat_room, username)
     special_msg = "STOP_MUSIC|"
     driver.special(special_msg)
-    driver.text("🎵 Lecture de la musique arrêtée")
+    driver.text("⚫️ Lecture de la musique arrêtée")
     nil
   end
 end
