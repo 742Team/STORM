@@ -24,11 +24,11 @@ class HelpCommand < BaseCommand
       # Skip empty categories
       next if commands.empty?
       
-      driver.text("\n#{category}:")
+      driver.text("\n#{category}")
       
       # Format each command with its name and description
       formatted_commands = commands.map do |cmd|
-        "#{cmd.command} - #{cmd.name}: #{cmd.description}"
+        "#{cmd.command}  #{cmd.name} #{cmd.description} -"
       end.sort
       
       driver.text(formatted_commands.join("\n"))
