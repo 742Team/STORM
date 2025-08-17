@@ -112,6 +112,51 @@ docker rm -f hermes_container
 lsof data/storm_persistent.db
 ```
 
+### Problèmes de Bundler (VPS)
+Si vous rencontrez l'erreur `Could not find 'bundler' (1.17.2)` :
+
+#### Solution rapide
+```bash
+# Exécuter le script de correction automatique
+./fix_vps_bundler.sh
+```
+
+#### Solution manuelle
+```bash
+# Installer la version spécifique de bundler
+gem install bundler:1.17.2
+
+# Ou mettre à jour vers la dernière version
+bundle update --bundler
+
+# Réinstaller les gems
+bundle install --retry=3
+```
+
+#### Reset complet (si nécessaire)
+```bash
+# Supprimer les fichiers de cache
+rm -rf .bundle/
+rm -f Gemfile.lock
+
+# Réinstaller bundler et les gems
+gem install bundler:1.17.2
+bundle install
+```
+
+### Vérification du statut
+```bash
+# Vérifier les processus Ruby en cours
+ps aux | grep ruby
+
+# Vérifier les ports utilisés
+lsof -i :3631
+
+# Vérifier bundler
+bundle --version
+bundle check
+```
+
 ## 📝 Notes Importantes
 
 - **Sauvegarde automatique** : Toujours effectuée avant le démarrage

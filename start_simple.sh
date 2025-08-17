@@ -51,6 +51,47 @@ backup_databases() {
 # Sauvegarder automatiquement
 backup_databases
 
+# Fonction pour vérifier et corriger bundler
+fix_bundler_issues() {
+    echo "🔧 Vérification des dépendances bundler..."
+    
+    # Vérifier si bundler est disponible
+    if ! command -v bundle &> /dev/null; then
+        echo "📦 Installation de bundler..."
+        gem install bundler --no-document
+    fi
+    
+    # Vérifier la version dans Gemfile.lock
+    if [ -f "Gemfile.lock" ]; then
+        REQUIRED_VERSION=$(grep -A 1 "BUNDLED WITH" Gemfile.lock | tail -n 1 | tr -d ' ')
+        if [ ! -z "$REQUIRED_VERSION" ]; then
+            echo "📋 Version requise: $REQUIRED_VERSION"
+            
+            # Installer la version spécifique si nécessaire
+            if ! gem list bundler | grep -q "$REQUIRED_VERSION"; then
+                echo "📦 Installation de bundler:$REQUIRED_VERSION..."
+                gem install bundler:"$REQUIRED_VERSION" --no-document 2>/dev/null || {
+                    echo "⚠️  Installation de la version spécifique échouée, mise à jour vers la dernière..."
+                    bundle update --bundler 2>/dev/null || true
+                }
+            fi
+        fi
+    fi
+    
+    # Installer les gems
+    echo "💎 Installation des gems..."
+    bundle install --retry=3 || {
+        echo "⚠️  bundle install échoué, tentative avec gem install..."
+        gem install sqlite3 sinatra bcrypt colorize websocket-driver webrick rack mini_magick --no-document
+    }
+    
+    echo "✅ Dépendances vérifiées"
+    echo ""
+}
+
+# Corriger les problèmes de bundler
+fix_bundler_issues
+
 # Arrêter les processus existants
 echo "Arrêt des processus existants."
 pkill -f "ruby.*start_with_persistence.rb" 2>/dev/null || true

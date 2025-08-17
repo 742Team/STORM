@@ -10,20 +10,20 @@ class PersistenceTest
   end
   
   def run_all_tests
-    puts "🧪 [TEST] Début des tests de persistance..."
+    puts " [TEST] Début des tests de persistance..."
     
     test_database_creation
     test_data_insertion
     test_data_persistence
     test_database_integrity
     
-    puts "✅ [TEST] Tous les tests de persistance ont réussi!"
+    puts " [TEST] Tous les tests de persistance ont réussi!"
   end
   
   private
   
   def test_database_creation
-    puts "📝 [TEST] Test de création de la base de données..."
+    puts " [TEST] Test de création de la base de données..."
     
     # Vérifier que la base de données existe
     unless File.exist?(DatabaseConfig::DB_PATH)
@@ -31,11 +31,11 @@ class PersistenceTest
     end
     
     assert File.exist?(DatabaseConfig::DB_PATH), "Base de données créée"
-    puts "✅ [TEST] Base de données créée avec succès"
+    puts " [TEST] Base de données créée avec succès"
   end
   
   def test_data_insertion
-    puts "📝 [TEST] Test d'insertion de données..."
+    puts " [TEST] Test d'insertion de données..."
     
     DatabaseConfig.with_connection do |db|
       # Insérer un utilisateur de test
@@ -57,11 +57,11 @@ class PersistenceTest
       )
     end
     
-    puts "✅ [TEST] Données de test insérées"
+    puts " [TEST] Données de test insérées"
   end
   
   def test_data_persistence
-    puts "📝 [TEST] Test de persistance des données..."
+    puts " [TEST] Test de persistance des données..."
     
     DatabaseConfig.with_connection do |db|
       # Vérifier l'utilisateur
@@ -80,11 +80,11 @@ class PersistenceTest
       assert preference['preference_value'] == 'true', "Valeur de préférence correcte"
     end
     
-    puts "✅ [TEST] Toutes les données persistent correctement"
+    puts " [TEST] Toutes les données persistent correctement"
   end
   
   def test_database_integrity
-    puts "📝 [TEST] Test d'intégrité de la base de données..."
+    puts " [TEST] Test d'intégrité de la base de données..."
     
     DatabaseConfig.with_connection do |db|
       result = db.execute("PRAGMA integrity_check")
@@ -102,12 +102,12 @@ class PersistenceTest
       end
     end
     
-    puts "✅ [TEST] Intégrité de la base de données vérifiée"
+    puts " [TEST] Intégrité de la base de données vérifiée"
   end
   
   def assert(condition, message)
     unless condition
-      puts "❌ [TEST] ÉCHEC: #{message}"
+      puts " [TEST] ÉCHEC: #{message}"
       exit(1)
     end
   end
@@ -115,7 +115,7 @@ end
 
 # Fonction utilitaire pour afficher les statistiques
 def display_stats
-  puts "\n📊 [STATS] Statistiques actuelles de la base de données:"
+  puts "\n [STATS] Statistiques actuelles de la base de données:"
   
   DatabaseConfig.with_connection do |db|
     stats = {
@@ -144,7 +144,7 @@ end
 
 # Fonction pour nettoyer les données de test
 def cleanup_test_data
-  puts "\n🧹 [CLEANUP] Nettoyage des données de test..."
+  puts "\n [CLEANUP] Nettoyage des données de test..."
   
   DatabaseConfig.with_connection do |db|
     db.execute("DELETE FROM user_preferences WHERE id = 999")
@@ -152,7 +152,7 @@ def cleanup_test_data
     db.execute("DELETE FROM users WHERE id = 999")
   end
   
-  puts "✅ [CLEANUP] Données de test supprimées"
+  puts " [CLEANUP] Données de test supprimées"
 end
 
 # Exécuter les tests si le script est appelé directement
