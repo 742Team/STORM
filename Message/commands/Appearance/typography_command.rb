@@ -20,11 +20,11 @@ class TypographyCommand < BaseCommand
     if can_modify_room
       # Modifier le thème du salon
       chat_room.broadcast_font(new_font, username, true)
-      driver.text(" ✅ Police du salon modifiée")
+      driver.text(" ⚪️ Police du salon modifiée")
     else
       # Modifier seulement pour l'utilisateur (si pas de thème de salon)
       if chat_room.has_room_theme?
-        driver.text(" ❌ Vous ne pouvez pas modifier la police dans ce salon")
+        driver.text(" ⚠️ Vous ne pouvez pas modifier la police dans ce salon")
         return nil
       else
         special_msg = "CHANGE_FONT|#{new_font}"

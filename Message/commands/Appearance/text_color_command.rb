@@ -22,11 +22,11 @@ class TextColorCommand < BaseCommand
     if can_modify_room
       # Modifier le thème du salon
       chat_room.broadcast_text_color(hex_color, username, true)
-      driver.text(" ✅ Couleur de texte du salon modifiée")
+      driver.text(" ⚪️ Couleur de texte du salon modifiée")
     else
       # Modifier seulement pour l'utilisateur (si pas de thème de salon)
       if chat_room.has_room_theme?
-        driver.text(" ❌ Vous ne pouvez pas modifier la couleur de texte dans ce salon")
+        driver.text(" ⚠️ Vous ne pouvez pas modifier la couleur de texte dans ce salon")
         return nil
       else
         special_msg = "CHANGE_TEXTCOLOR|#{hex_color}"
