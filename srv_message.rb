@@ -241,7 +241,7 @@ end
 
 # Gestionnaire de signaux pour arrêt propre
 Signal.trap('INT') do
-  puts "\n🛑 Arrêt du serveur...".red
+  puts "\n⚫️ Arrêt du serveur...".red
   CACHE.print_performance_stats
   OPTIMIZER.cleanup
   THREAD_POOL.shutdown
@@ -250,7 +250,7 @@ Signal.trap('INT') do
 end
 
 Signal.trap('TERM') do
-  puts "\n🛑 Arrêt du serveur (TERM)...".red
+  puts "\n⚫️ Arrêt du serveur (TERM)...".red
   CACHE.cleanup_all
   OPTIMIZER.cleanup
   THREAD_POOL.kill

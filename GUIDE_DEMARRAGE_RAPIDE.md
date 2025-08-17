@@ -1,17 +1,17 @@
-# 🚀 GUIDE DE DÉMARRAGE RAPIDE - STORM MICRO
+# GUIDE DE DÉMARRAGE RAPIDE - STORM MICRO
 
-## 📋 RÉSUMÉ EXÉCUTIF
+## RÉSUMÉ EXÉCUTIF
 
 **STORM MICRO** est maintenant **100% fonctionnel** et prêt pour la production !
 
-- ✅ **39 commandes** implémentées et testées
-- ✅ **3 serveurs** (Message, Auth, Upload) opérationnels
-- ✅ **Architecture complète** avec WebSocket et API REST
-- ✅ **Score de fonctionnalité** : 100%
+- **39 commandes** implémentées et testées
+- **3 serveurs** (Message, Auth, Upload) opérationnels
+- **Architecture complète** avec WebSocket et API REST
+- **Score de fonctionnalité** : 100%
 
 ---
 
-## ⚡ DÉMARRAGE ULTRA-RAPIDE
+## DÉMARRAGE ULTRA-RAPIDE
 
 ### Option 1: Démarrage Automatique (Recommandé)
 ```bash
@@ -36,7 +36,7 @@ ruby srv_upload.rb
 
 ---
 
-## 🌐 POINTS D'ACCÈS
+## POINTS D'ACCÈS
 
 | Service | URL | Port | Description |
 |---------|-----|------|-------------|
@@ -46,40 +46,40 @@ ruby srv_upload.rb
 
 ---
 
-## 🎮 COMMANDES PRINCIPALES
+## COMMANDES PRINCIPALES
 
-### 🏠 Gestion des Salons
+### Gestion des Salons
 - `/cr <nom>` - Créer un salon
 - `/cd <salon>` - Changer de salon
 - `/info` - Informations du salon
 - `/list` - Liste des utilisateurs
 
-### 💬 Communication
+### Communication
 - `/help` - Aide complète
 - `/history` - Historique des messages
 - `/dm <user> <message>` - Message privé
 - `/quit` - Quitter
 
-### 🎨 Personnalisation
+### Personnalisation
 - `/color <couleur>` - Couleur du pseudo
 - `/background <image>` - Fond d'écran
 - `/typo <police>` - Police de caractères
 - `/textcolor <couleur>` - Couleur du texte
 
-### 👥 Gestion des Utilisateurs
+### Gestion des Utilisateurs
 - `/register <user> <pass>` - Inscription
 - `/login <user> <pass>` - Connexion
 - `/ban <user>` - Bannir (admin)
 - `/kick <user>` - Expulser (admin)
 
-### 🎵 Média
+### Média
 - `/upload` - Upload de fichier
 - `/play <fichier>` - Lecture audio
 - `/volume <0-100>` - Contrôle volume
 
 ---
 
-## 📊 TESTS ET VALIDATION
+## TESTS ET VALIDATION
 
 ### Scripts de Test Disponibles
 ```bash
@@ -97,14 +97,14 @@ ruby test_final_integration.rb
 ```
 
 ### Résultats des Tests
-- ✅ **Structure** : 100% - Tous les fichiers présents
-- ✅ **Commandes** : 100% - 39/39 commandes fonctionnelles
-- ✅ **Serveurs** : 97.9% - Prêts pour déploiement
-- ✅ **Intégration** : 100% - Application complète
+- **Structure** : 100% - Tous les fichiers présents
+- **Commandes** : 100% - 39/39 commandes fonctionnelles
+- **Serveurs** : 97.9% - Prêts pour déploiement
+- **Intégration** : 100% - Application complète
 
 ---
 
-## 🔧 DÉPANNAGE RAPIDE
+## DÉPANNAGE RAPIDE
 
 ### Problème : Port déjà utilisé
 ```bash
@@ -134,7 +134,7 @@ gem install sinatra sqlite3 bcrypt colorize websocket-driver
 
 ---
 
-## 📈 OPTIMISATIONS DISPONIBLES
+## OPTIMISATIONS DISPONIBLES
 
 ### Scripts d'Optimisation
 ```bash
@@ -143,16 +143,16 @@ ruby optimize_performance.rb
 ```
 
 ### Améliorations Incluses
-- 🚀 **Pool de connexions** base de données
-- 💾 **Système de cache** LRU
-- 📡 **Broadcasting asynchrone** WebSocket
-- 🚦 **Rate limiting** par utilisateur
-- 📁 **Upload optimisé** avec déduplication
-- 📊 **Monitoring** en temps réel
+- **Pool de connexions** base de données
+- **Système de cache** LRU
+- **Broadcasting asynchrone** WebSocket
+- **Rate limiting** par utilisateur
+- **Upload optimisé** avec déduplication
+- **Monitoring** en temps réel
 
 ---
 
-## 🏗️ ARCHITECTURE TECHNIQUE
+## ARCHITECTURE TECHNIQUE
 
 ### Structure des Serveurs
 ```
@@ -178,7 +178,7 @@ STORM/
 
 ---
 
-## 🎯 UTILISATION EN PRODUCTION
+## UTILISATION EN PRODUCTION
 
 ### Configuration Recommandée
 ```bash
@@ -204,14 +204,14 @@ cat deployment_report.json
 
 ---
 
-## 🔒 SÉCURITÉ
+## SÉCURITÉ
 
 ### Mesures Implémentées
-- ✅ **Authentification** par mot de passe chiffré
-- ✅ **Validation** des entrées utilisateur
-- ✅ **Rate limiting** anti-spam
-- ✅ **Validation** des types de fichiers
-- ✅ **Isolation** des uploads
+- **Authentification** par mot de passe chiffré
+- **Validation** des entrées utilisateur
+- **Rate limiting** anti-spam
+- **Validation** des types de fichiers
+- **Isolation** des uploads
 
 ### Recommandations Production
 - Utiliser HTTPS en production
@@ -221,7 +221,7 @@ cat deployment_report.json
 
 ---
 
-## 📞 SUPPORT ET MAINTENANCE
+## SUPPORT ET MAINTENANCE
 
 ### Fichiers de Configuration
 - `deployment_report.json` - Rapport de déploiement
@@ -247,14 +247,14 @@ ruby deploy_storm.rb
 
 ---
 
-## 🎉 FÉLICITATIONS !
+## FÉLICITATIONS !
 
 Votre application **STORM MICRO** est maintenant :
 
-- ✅ **Entièrement fonctionnelle**
-- ✅ **Prête pour la production**
-- ✅ **Optimisée pour les performances**
-- ✅ **Documentée et testée**
+- **Entièrement fonctionnelle**
+- **Prête pour la production**
+- **Optimisée pour les performances**
+- **Documentée et testée**
 
 ### Prochaines Étapes Suggérées
 1. **Tester** avec de vrais utilisateurs
@@ -264,4 +264,4 @@ Votre application **STORM MICRO** est maintenant :
 
 ---
 
-**Bon développement avec STORM ! 🚀**
+**Bon développement avec STORM !**

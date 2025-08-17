@@ -124,15 +124,15 @@ begin
   # Vérifier l'intégrité
   result = db.execute("PRAGMA integrity_check")
   if result.first['integrity_check'] == 'ok'
-    puts "[SETUP] ✅ Intégrité de la base de données vérifiée"
+    puts "[SETUP] Intégrité de la base de données vérifiée"
   else
-    puts "[SETUP] ❌ Problème d'intégrité détecté"
+    puts "[SETUP] ⚫️ Problème d'intégrité détecté"
   end
   
 rescue SQLite3::Exception => e
-  puts "[SETUP] ❌ Erreur lors de la création des tables: #{e.message}"
+  puts "[SETUP] ⚫️ Erreur lors de la création des tables: #{e.message}"
 ensure
   db.close if db
 end
 
-puts "[SETUP] ✅ Configuration de la base de données terminée"
+puts "[SETUP] Configuration de la base de données terminée"

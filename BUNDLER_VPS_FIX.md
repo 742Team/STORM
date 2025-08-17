@@ -1,23 +1,49 @@
-# 🔧 Correction des Problèmes Bundler sur VPS
+# Correction des Problèmes Bundler sur VPS
 
 ## Problème Identifié
 
-Erreur rencontrée :
+Erreurs rencontrées :
+
+**Erreur Bundler :**
 ```
 Could not find 'bundler' (1.17.2) required by your /root/STORM/Gemfile.lock. (Gem::GemNotFoundException)
 To update to the latest version installed on your system, run `bundle update --bundler`.
 To install the missing version, run `gem install bundler:1.17.2`
 ```
 
-## 🚀 Solutions Rapides
+**Erreur taglib-ruby (Nouvelle) :**
+```
+ERROR: Failed to build gem native extension.
+checking for -ltag... no
+You must have taglib installed in order to use taglib-ruby.
 
-### Option 1 : Script Automatique (Recommandé)
+Debian/Ubuntu: sudo apt-get install libtag1-dev
+Fedora/RHEL: sudo dnf install taglib-devel
+Brew: brew install taglib
+MacPorts: sudo port install taglib
+```
+
+## Solutions Rapides
+
+### Option 1 : Démarrage d'Urgence (Nouveau - Recommandé)
 ```bash
-# Exécuter le script de correction
+# Contourne tous les problèmes de dépendances
+./start_emergency.sh
+```
+
+### Option 2 : Correction des Dépendances Système
+```bash
+# Installer les dépendances système manquantes (nécessite sudo)
+sudo ./fix_vps_dependencies.sh
+```
+
+### Option 3 : Script Bundler Automatique
+```bash
+# Exécuter le script de correction bundler
 ./fix_vps_bundler.sh
 ```
 
-### Option 2 : Commandes Manuelles
+### Option 4 : Commandes Manuelles
 ```bash
 # Installer la version spécifique
 gem install bundler:1.17.2
@@ -26,7 +52,7 @@ gem install bundler:1.17.2
 ruby start_with_persistence.rb
 ```
 
-### Option 3 : Mise à Jour Bundler
+### Option 5 : Mise à Jour Bundler
 ```bash
 # Mettre à jour vers la dernière version
 bundle update --bundler
@@ -35,7 +61,7 @@ bundle update --bundler
 bundle install
 ```
 
-## 🔍 Diagnostic
+## Diagnostic
 
 ### Vérifier l'état actuel
 ```bash
@@ -52,7 +78,7 @@ gem list bundler
 grep -A 1 "BUNDLED WITH" Gemfile.lock
 ```
 
-## 🛠️ Solutions Avancées
+## Solutions Avancées
 
 ### Reset Complet
 Si les solutions précédentes ne fonctionnent pas :
@@ -86,26 +112,26 @@ gem install sqlite3 sinatra bcrypt colorize websocket-driver webrick rack mini_m
 ruby start_with_persistence.rb
 ```
 
-## 📋 Scripts Disponibles
+## Scripts Disponibles
 
 - `./fix_vps_bundler.sh` : Correction automatique complète
 - `./fix_bundler.sh` : Correction générale
 - `./start_simple.sh` : Démarrage avec correction automatique
 - `./start_hermes.sh` : Démarrage Docker avec correction
 
-## ✅ Vérification du Succès
+## Vérification du Succès
 
 Après correction, vous devriez voir :
 ```
-🚀 [PERSISTENCE] Démarrage du serveur STORM avec persistance...
-📍 [PERSISTENCE] Base de données: /root/STORM/data/storm_persistent.db
-🔒 [PERSISTENCE] Mode WAL activé pour la concurrence
-💾 [PERSISTENCE] Sauvegarde automatique des données
+[PERSISTENCE] Démarrage du serveur STORM avec persistance...
+[PERSISTENCE] Base de données: /root/STORM/data/storm_persistent.db
+[PERSISTENCE] Mode WAL activé pour la concurrence
+[PERSISTENCE] Sauvegarde automatique des données
 
 * Listening on http://0.0.0.0:3631
 ```
 
-## 🆘 Support
+## Support
 
 Si le problème persiste :
 1. Vérifiez les permissions du système

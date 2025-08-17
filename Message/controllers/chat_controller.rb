@@ -194,9 +194,9 @@ class ChatController
         
         @preference_manager.create_room_themes_table if @preference_manager
         
-        puts "✅ Database optimized successfully".green
+        puts "Database optimized successfully".green
       rescue => ex
-        puts "❌ Database optimization error: #{ex.message}".red
+        puts "⚫️ Database optimization error: #{ex.message}".red
       end
     end
   end
@@ -214,7 +214,7 @@ class ChatController
             room.created_at = Time.parse(room_data[:created_at]) if room_data[:created_at]
             @chat_rooms[room_data[:name]] = room
           end
-          puts "✅ Loaded #{cached_rooms.size} rooms from cache".green
+          puts "Loaded #{cached_rooms.size} rooms from cache".green
           return
         end
         
@@ -242,9 +242,9 @@ class ChatController
         @cache.cache_rooms(rooms_data)
         
         db.close
-        puts "✅ Loaded #{rooms.size} rooms from database".green
+        puts "Loaded #{rooms.size} rooms from database".green
       rescue => ex
-        puts "❌ Room loading error: #{ex.message}".red
+        puts "⚫️ Room loading error: #{ex.message}".red
       end
     end
   end
@@ -259,7 +259,7 @@ class ChatController
       # Statistiques
       active_rooms = @chat_rooms.size
       total_clients = @chat_rooms.values.sum { |room| room.clients.size }
-      puts "📊 Stats: #{active_rooms} rooms, #{total_clients} clients".blue
+      puts "Stats: #{active_rooms} rooms, #{total_clients} clients".blue
     end
     
     @maintenance_timer.execute
@@ -336,7 +336,7 @@ class ChatController
           
           result
         rescue => e
-          puts "❌ Command processing error: #{e.message}".red
+          puts "⚫️ Command processing error: #{e.message}".red
           nil
         end
       end
@@ -373,7 +373,7 @@ class ChatController
             @stats[:avg_message_time] = (@stats[:avg_message_time] + processing_time) / 2
           end
         rescue => e
-          puts "❌ Message processing error: #{e.message}".red
+          puts "⚫️ Message processing error: #{e.message}".red
         end
       end
       

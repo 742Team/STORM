@@ -16,7 +16,7 @@ class PerformanceOptimizer
   end
 
   def run_all_optimizations
-    puts "🚀 STORM Performance Optimization Suite"
+    puts "STORM Performance Optimization Suite"
     puts "=" * 50
     
     optimize_database_connections
@@ -34,7 +34,7 @@ class PerformanceOptimizer
   private
 
   def optimize_database_connections
-    puts "\n📊 1. Optimizing Database Connections..."
+    puts "\n1. Optimizing Database Connections..."
     
     # Créer un gestionnaire de pool de connexions
     pool_config = <<~RUBY
@@ -76,11 +76,11 @@ class PerformanceOptimizer
     
     write_optimization_file('config/database_pool.rb', pool_config)
     @optimizations << "Database Connection Pool"
-    puts "  ✅ Database connection pool created"
+    puts "  Database connection pool created"
   end
 
   def implement_caching_system
-    puts "\n🗄️ 2. Implementing Caching System..."
+    puts "\n2. Implementing Caching System..."
     
     cache_system = <<~RUBY
       # lib/cache_manager.rb
@@ -162,7 +162,7 @@ class PerformanceOptimizer
     
     write_optimization_file('lib/cache_manager.rb', cache_system)
     @optimizations << "LRU Cache System"
-    puts "  ✅ LRU cache system implemented"
+    puts "  LRU cache system implemented"
   end
 
   def optimize_websocket_broadcasting
@@ -234,7 +234,7 @@ class PerformanceOptimizer
     
     write_optimization_file('lib/broadcast_optimizer.rb', broadcast_optimizer)
     @optimizations << "Async WebSocket Broadcasting"
-    puts "  ✅ Asynchronous broadcasting implemented"
+    puts "  Asynchronous broadcasting implemented"
   end
 
   def implement_rate_limiting
@@ -303,7 +303,7 @@ class PerformanceOptimizer
     
     write_optimization_file('lib/rate_limiter.rb', rate_limiter)
     @optimizations << "Rate Limiting System"
-    puts "  ✅ Rate limiting system implemented"
+    puts "  Rate limiting system implemented"
   end
 
   def optimize_file_uploads
@@ -405,7 +405,7 @@ class PerformanceOptimizer
     
     write_optimization_file('lib/upload_optimizer.rb', upload_optimizer)
     @optimizations << "Async File Upload Processing"
-    puts "  ✅ Asynchronous file upload processing implemented"
+    puts "  Asynchronous file upload processing implemented"
   end
 
   def add_connection_pooling
@@ -462,7 +462,7 @@ class PerformanceOptimizer
     
     write_optimization_file('lib/connection_pool.rb', connection_pool)
     @optimizations << "Connection Pooling"
-    puts "  ✅ Connection pooling implemented"
+    puts "  Connection pooling implemented"
   end
 
   def implement_logging_system
@@ -549,11 +549,11 @@ class PerformanceOptimizer
     
     write_optimization_file('lib/advanced_logger.rb', logger_system)
     @optimizations << "Structured Logging System"
-    puts "  ✅ Advanced logging system implemented"
+    puts "  Advanced logging system implemented"
   end
 
   def create_monitoring_dashboard
-    puts "\n📊 8. Creating Monitoring Dashboard..."
+    puts "\n8. Creating Monitoring Dashboard..."
     
     monitoring_system = <<~RUBY
       # lib/monitoring.rb
@@ -629,7 +629,7 @@ class PerformanceOptimizer
     
     write_optimization_file('lib/monitoring.rb', monitoring_system)
     @optimizations << "Real-time Monitoring System"
-    puts "  ✅ Monitoring dashboard implemented"
+    puts "  Monitoring dashboard implemented"
   end
 
   def write_optimization_file(path, content)
@@ -645,10 +645,10 @@ class PerformanceOptimizer
     
     puts "\n📋 Optimizations Applied:"
     @optimizations.each_with_index do |opt, i|
-      puts "  #{i + 1}. ✅ #{opt}"
+      puts "  #{i + 1}. #{opt}"
     end
     
-    puts "\n🚀 Next Steps:"
+    puts "\nNext Steps:"
     puts "  1. Integrate optimizations into existing code"
     puts "  2. Update server files to use new systems"
     puts "  3. Run performance benchmarks"
@@ -665,11 +665,11 @@ class PerformanceOptimizer
     puts "  • lib/monitoring.rb - Real-time monitoring"
     
     puts "\n⚡ Expected Performance Improvements:"
-    puts "  • 🚀 50-70% faster response times"
+    puts "  • 50-70% faster response times"
     puts "  • 📈 3-5x more concurrent users"
     puts "  • 💾 60% reduction in memory usage"
     puts "  • 🔄 90% reduction in database load"
-    puts "  • 📊 Real-time performance monitoring"
+    puts "  • Real-time performance monitoring"
     
     puts "\n" + "=" * 50
   end

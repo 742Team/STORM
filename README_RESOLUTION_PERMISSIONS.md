@@ -1,30 +1,30 @@
-# 🛠️ Outils de Résolution - Problème de Permissions Administrateur
+# Outils de Résolution - Problème de Permissions Administrateur
 
-## 📋 Résumé du Problème
+## Résumé du Problème
 
 Le problème de permissions administrateur sur le VPS persiste même après :
-- Push sur GitHub ✅
-- Pull sur le VPS ✅ 
-- Relancement du container ✅
+- Push sur GitHub
+- Pull sur le VPS 
+- Relancement du container
 
 **Cause identifiée** : Les méthodes de permissions étaient privées dans la classe `ChatRoom`, empêchant leur utilisation par les commandes.
 
-## 🚀 Outils Créés pour la Résolution
+## Outils Créés pour la Résolution
 
 ### 1. Scripts de Diagnostic
 
-#### `quick_vps_check.sh` ⚡ (NOUVEAU - Recommandé)
+#### `quick_vps_check.sh` (NOUVEAU - Recommandé)
 **Usage** : Diagnostic rapide et complet
 ```bash
 bash quick_vps_check.sh
 ```
 **Fonctionnalités** :
-- ✅ Vérification de l'environnement Git
-- ✅ Contrôle des fichiers critiques
-- ✅ Vérification des processus en cours
-- ✅ Test de syntaxe Ruby
-- ✅ Recommandations automatiques
-- ✅ Interface colorée et claire
+- Vérification de l'environnement Git
+- Contrôle des fichiers critiques
+- Vérification des processus en cours
+- Test de syntaxe Ruby
+- Recommandations automatiques
+- Interface colorée et claire
 
 #### `check_vps_permissions.sh`
 **Usage** : Diagnostic détaillé des permissions
@@ -34,17 +34,17 @@ bash check_vps_permissions.sh
 
 ### 2. Scripts de Correction
 
-#### `fix_vps_permissions.sh` 🔧 (Recommandé)
+#### `fix_vps_permissions.sh` (Recommandé)
 **Usage** : Correction automatique des permissions
 ```bash
 bash fix_vps_permissions.sh
 ```
 **Fonctionnalités** :
-- ✅ Sauvegarde automatique des fichiers
-- ✅ Correction des méthodes privées
-- ✅ Ajout des constantes manquantes
-- ✅ Vérification de syntaxe
-- ✅ Test des permissions
+- Sauvegarde automatique des fichiers
+- Correction des méthodes privées
+- Ajout des constantes manquantes
+- Vérification de syntaxe
+- Test des permissions
 
 ### 3. Scripts de Test
 
@@ -68,15 +68,15 @@ ruby debug_vps_issue.rb
 // Coller le contenu du fichier dans la console
 ```
 **Fonctionnalités** :
-- ✅ Vérification du stockage local
-- ✅ Test des variables globales
-- ✅ Contrôle WebSocket
-- ✅ Test des fonctions d'authentification
-- ✅ Test de la commande /background
+- Vérification du stockage local
+- Test des variables globales
+- Contrôle WebSocket
+- Test des fonctions d'authentification
+- Test de la commande /background
 
 ### 5. Documentation
 
-#### `GUIDE_RESOLUTION_COMPLETE.md` 📖
+#### `GUIDE_RESOLUTION_COMPLETE.md`
 **Contenu** : Guide complet étape par étape
 - Diagnostic backend et frontend
 - Solutions par ordre de priorité
@@ -86,7 +86,7 @@ ruby debug_vps_issue.rb
 #### `SOLUTION_VPS_PERMISSIONS.md` (Mis à jour)
 **Contenu** : Documentation technique détaillée
 
-## 🚀 Procédure de Résolution Recommandée
+## Procédure de Résolution Recommandée
 
 ### Étape 1: Diagnostic Rapide
 ```bash
@@ -117,9 +117,9 @@ ruby srv_message.rb &
 ### Étape 5: Validation
 1. Se connecter avec `DALM1`
 2. Tester `/background https://example.com/test.jpg`
-3. Vérifier que ça fonctionne ✅
+3. Vérifier que ça fonctionne
 
-## 🔧 Solutions Alternatives
+## Solutions Alternatives
 
 ### Si la correction automatique échoue :
 1. **Correction manuelle** : Suivre `GUIDE_RESOLUTION_COMPLETE.md`
@@ -131,30 +131,30 @@ ruby srv_message.rb &
 2. Vérifier les identifiants stockés
 3. Tester la reconnexion
 
-## 📊 Fichiers Modifiés/Créés
+## Fichiers Modifiés/Créés
 
-### Fichiers Backend Critiques ✅
+### Fichiers Backend Critiques
 - `Message/models/chat_room.rb` - Méthodes de permissions publiques
 - `Message/commands/Appearance/background_command.rb` - Logique de permissions
 
-### Scripts de Diagnostic 🔍
-- `quick_vps_check.sh` ⭐ **NOUVEAU**
+### Scripts de Diagnostic
+- `quick_vps_check.sh` **NOUVEAU**
 - `check_vps_permissions.sh`
 - `debug_vps_issue.rb`
 - `test_admin_permissions.rb`
 
-### Scripts de Correction 🛠️
-- `fix_vps_permissions.sh` ⭐ **RECOMMANDÉ**
+### Scripts de Correction
+- `fix_vps_permissions.sh` **RECOMMANDÉ**
 
-### Diagnostic Frontend 🌐
-- `debug_frontend_auth.js` ⭐ **NOUVEAU**
+### Diagnostic Frontend
+- `debug_frontend_auth.js` **NOUVEAU**
 
-### Documentation 📚
-- `GUIDE_RESOLUTION_COMPLETE.md` ⭐ **COMPLET**
+### Documentation
+- `GUIDE_RESOLUTION_COMPLETE.md` **COMPLET**
 - `SOLUTION_VPS_PERMISSIONS.md` (mis à jour)
 - `README_RESOLUTION_PERMISSIONS.md` (ce fichier)
 
-## ✅ Checklist de Résolution
+## Checklist de Résolution
 
 - [ ] Diagnostic rapide exécuté (`quick_vps_check.sh`)
 - [ ] Problèmes identifiés
@@ -162,9 +162,9 @@ ruby srv_message.rb &
 - [ ] Serveur redémarré
 - [ ] Frontend vérifié (`debug_frontend_auth.js`)
 - [ ] Tests de validation réussis
-- [ ] Problème résolu ✅
+- [ ] Problème résolu
 
-## 🆘 Support
+## Support
 
 Si aucune solution ne fonctionne :
 

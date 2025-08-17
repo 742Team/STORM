@@ -1,0 +1,29 @@
+source 'https://rubygems.org'
+
+# Gems essentielles pour STORM (sans taglib-ruby)
+# taglib-ruby retiré pour éviter les problèmes de compilation
+
+# Serveur web
+gem 'sinatra'
+gem 'rack'
+
+# Base de données
+gem 'sqlite3'
+
+# Sécurité
+gem 'bcrypt'
+
+# Utilitaires
+gem 'colorize'
+gem 'mini_magick'
+gem 'websocket-driver'
+gem 'base64'
+gem 'ruby2_keywords'
+
+# Note: Pour installer taglib-ruby plus tard :
+# 1. Installer les dépendances système :
+#    Ubuntu/Debian: sudo apt-get install libtag1-dev build-essential ruby-dev
+#    CentOS/RHEL: sudo yum install taglib-devel gcc gcc-c++ ruby-devel
+#    macOS: brew install taglib
+# 2. Ajouter gem 'taglib-ruby' à ce fichier
+# 3. Exécuter bundle install

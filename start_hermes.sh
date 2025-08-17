@@ -5,7 +5,7 @@ CURRENT_DIR=$(pwd)
 
 # Fonction pour sauvegarder les bases de données existantes
 backup_databases() {
-    echo " Sauvegarde des bases de données existantes..."
+    echo "Sauvegarde des bases de données existantes..."
     
     # Créer le répertoire de sauvegarde avec timestamp
     BACKUP_DIR="$CURRENT_DIR/data/backups/$(date +%Y%m%d_%H%M%S)"
@@ -48,11 +48,11 @@ backup_databases
 
 # Fonction pour vérifier et corriger bundler
 fix_bundler_issues() {
-    echo "🔧 Vérification des dépendances bundler..."
+    echo "Vérification des dépendances bundler..."
     
     # Vérifier si bundler est disponible
     if ! command -v bundle &> /dev/null; then
-        echo "📦 Installation de bundler..."
+        echo "Installation de bundler..."
         gem install bundler --no-document
     fi
     
@@ -60,13 +60,13 @@ fix_bundler_issues() {
     if [ -f "Gemfile.lock" ]; then
         REQUIRED_VERSION=$(grep -A 1 "BUNDLED WITH" Gemfile.lock | tail -n 1 | tr -d ' ')
         if [ ! -z "$REQUIRED_VERSION" ]; then
-            echo "📋 Version requise: $REQUIRED_VERSION"
+            echo "Version requise: $REQUIRED_VERSION"
             
             # Installer la version spécifique si nécessaire
             if ! gem list bundler | grep -q "$REQUIRED_VERSION"; then
-                echo "📦 Installation de bundler:$REQUIRED_VERSION..."
+                echo "Installation de bundler:$REQUIRED_VERSION..."
                 gem install bundler:"$REQUIRED_VERSION" --no-document 2>/dev/null || {
-                    echo "⚠️  Installation de la version spécifique échouée, mise à jour vers la dernière..."
+                    echo "ATTENTION: Installation de la version spécifique échouée, mise à jour vers la dernière..."
                     bundle update --bundler 2>/dev/null || true
                 }
             fi
@@ -74,13 +74,13 @@ fix_bundler_issues() {
     fi
     
     # Installer les gems
-    echo "💎 Installation des gems..."
+    echo "Installation des gems..."
     bundle install --retry=3 || {
-        echo "⚠️  bundle install échoué, tentative avec gem install..."
+        echo "ATTENTION: bundle install échoué, tentative avec gem install..."
         gem install sqlite3 sinatra bcrypt colorize websocket-driver webrick rack mini_magick --no-document
     }
     
-    echo "✅ Dépendances vérifiées"
+    echo "Dépendances vérifiées"
     echo ""
 }
 
@@ -98,23 +98,23 @@ if git status >/dev/null 2>&1; then
     
     # Pull les modifications si disponibles
     if git pull origin "$current_branch" >/dev/null 2>&1; then
-        echo "⚪️ Code mis à jour avec succès"
+        echo "Code mis à jour avec succès"
     else
-        echo "⚠️  Aucune mise à jour disponible ou erreur lors du pull"
+        echo "ATTENTION: Aucune mise à jour disponible ou erreur lors du pull"
     fi
 else
-    echo "⚠️  Ce répertoire n'est pas un dépôt Git, pas de mise à jour automatique"
+    echo "ATTENTION: Ce répertoire n'est pas un dépôt Git, pas de mise à jour automatique"
 fi
 echo ""
 
 # Vérifier si la configuration de persistance existe
 if [ -f "$CURRENT_DIR/start_with_persistence.rb" ] && [ -f "$CURRENT_DIR/config/database_config.rb" ]; then
-    echo " Configuration de persistance détectée..."
+    echo "Configuration de persistance détectée..."
     echo "Voulez-vous utiliser la configuration de persistance? (y/N)"
     read -t 10 -r use_persistence
     
     if [[ $use_persistence =~ ^[Yy]$ ]]; then
-        echo " Démarrage avec la configuration de persistance..."
+        echo "Démarrage avec la configuration de persistance..."
         # Arrêter le serveur actuel s'il existe
         pkill -f "ruby.*start_with_persistence.rb" 2>/dev/null
         pkill -f "puma" 2>/dev/null
@@ -124,7 +124,7 @@ if [ -f "$CURRENT_DIR/start_with_persistence.rb" ] && [ -f "$CURRENT_DIR/config/
         ruby start_with_persistence.rb
         exit 0
     else
-        echo " Utilisation de la configuration Docker standard..."
+        echo "Utilisation de la configuration Docker standard..."
     fi
 fi
 
@@ -213,9 +213,9 @@ echo "- HTTP (uploads): 4567"
 echo "Dossier des uploads monté dans: $CURRENT_DIR/uploads"
 
 if docker ps | grep -q hermes_container; then
-  echo "⚪️ Le conteneur fonctionne correctement."
+  echo "Le conteneur fonctionne correctement."
 else
-  echo "⚫️ Le conteneur s'est arrêté. Vérifiez les logs pour plus de détails:"
+  echo "ERREUR: Le conteneur s'est arrêté. Vérifiez les logs pour plus de détails:"
   docker logs hermes_container
 
   echo "Tentative de démarrage sans le serveur d'upload..."

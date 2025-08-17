@@ -173,7 +173,7 @@ class ChatRoom
               @clients.delete(username)
               puts "🔌 Client #{username} disconnected from #{@name}".yellow
             rescue => e
-              puts "❌ Broadcast error to #{username}: #{e.message}".red
+              puts "⚫️ Broadcast error to #{username}: #{e.message}".red
             end
           end
         end
@@ -185,7 +185,7 @@ class ChatRoom
         cleanup_old_data if @stats[:messages_sent] % 100 == 0
         
       rescue => e
-        puts "❌ Broadcast optimization error: #{e.message}".red
+        puts "⚫️ Broadcast optimization error: #{e.message}".red
       end
     end
   end
@@ -469,7 +469,7 @@ class ChatRoom
     # Nettoyer les caches
     cleanup_old_data
     
-    puts "🚀 Memory optimized for room #{@name}".green
+    puts "Memory optimized for room #{@name}".green
   end
   
   # Ajouter cette méthode à la classe ChatRoom

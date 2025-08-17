@@ -1,17 +1,17 @@
-# 🔒 Configuration de Persistance des Données STORM
+# Configuration de Persistance des Données STORM
 
-## 📋 Vue d'ensemble
+## Vue d'ensemble
 
 Le serveur STORM a été configuré avec un système de persistance des données robuste qui garantit la conservation des messages, comptes utilisateurs et préférences lors des redémarrages du serveur.
 
-## 🗄️ Structure de la Base de Données
+## Structure de la Base de Données
 
 ### 📍 Emplacement
 - **Base de données principale**: `data/storm_persistent.db`
 - **Fichiers WAL**: `data/storm_persistent.db-wal` et `data/storm_persistent.db-shm`
 - **Sauvegardes**: `data/backups/`
 
-### 📊 Tables Créées
+### Tables Créées
 
 1. **users** - Comptes utilisateurs
    - `id`, `username`, `email`, `password_hash`
@@ -35,7 +35,7 @@ Le serveur STORM a été configuré avec un système de persistance des données
    - `id`, `user_id`, `session_token`, `expires_at`
    - `created_at`, `last_activity`, `ip_address`, `user_agent`
 
-## 🚀 Démarrage du Serveur
+## Démarrage du Serveur
 
 ### Option 1: Démarrage avec Persistance (Recommandé)
 ```bash
@@ -47,7 +47,7 @@ ruby start_with_persistence.rb
 bundle exec puma -p 3631 -e development
 ```
 
-## 🔧 Configuration Technique
+## Configuration Technique
 
 ### Optimisations SQLite
 - **Mode WAL** (Write-Ahead Logging) pour la concurrence
@@ -60,7 +60,7 @@ bundle exec puma -p 3631 -e development
 - **10 connexions** dans le pool standard
 - **Timeout de 5 secondes** pour éviter les blocages
 
-## 📦 Migration des Données
+## Migration des Données
 
 ### Migration Automatique
 Lors du premier démarrage avec persistance, le système migre automatiquement les données des anciennes bases :
@@ -74,7 +74,7 @@ Lors du premier démarrage avec persistance, le système migre automatiquement l
 ruby scripts/migrate_database.rb
 ```
 
-## 🛡️ Sécurité et Sauvegarde
+## Sécurité et Sauvegarde
 
 ### Sauvegardes Automatiques
 - Les anciennes bases sont sauvegardées dans `data/backups/`
@@ -85,7 +85,7 @@ ruby scripts/migrate_database.rb
 - Réparation automatique en cas de corruption
 - Sauvegarde avant réparation
 
-## 📈 Monitoring
+## Monitoring
 
 ### Statistiques Affichées au Démarrage
 - Nombre d'utilisateurs
@@ -96,19 +96,19 @@ ruby scripts/migrate_database.rb
 
 ### Logs de Persistance
 ```
-🔄 [PERSISTENCE] Vérification de la persistance des données...
-✅ [PERSISTENCE] Base de données existante trouvée
-✅ [PERSISTENCE] Intégrité de la base de données vérifiée
-📊 [PERSISTENCE] Statistiques de la base de données:
+[PERSISTENCE] Vérification de la persistance des données...
+[PERSISTENCE] Base de données existante trouvée
+[PERSISTENCE] Intégrité de la base de données vérifiée
+[PERSISTENCE] Statistiques de la base de données:
    - users: X enregistrements
    - messages: X enregistrements
    - rooms: X enregistrements
    - user_preferences: X enregistrements
    - Taille: X.XX MB
-✅ [PERSISTENCE] Persistance des données garantie!
+[PERSISTENCE] Persistance des données garantie!
 ```
 
-## 🔄 Redémarrage du Serveur
+## Redémarrage du Serveur
 
 ### Arrêt Propre
 - `Ctrl+C` ou `SIGINT` pour un arrêt propre
@@ -125,9 +125,9 @@ ruby scripts/migrate_database.rb
 ### Base de Données Corrompue
 ```bash
 # Le système crée automatiquement une sauvegarde et répare
-⚠️  [PERSISTENCE] Problème d'intégrité détecté, réparation...
-💾 [PERSISTENCE] Sauvegarde créée: data/storm_persistent.db.backup.1234567890
-🔧 [PERSISTENCE] Base de données réparée
+⚠️ [PERSISTENCE] Problème d'intégrité détecté, réparation...
+[PERSISTENCE] Sauvegarde créée: data/storm_persistent.db.backup.1234567890
+[PERSISTENCE] Base de données réparée
 ```
 
 ### Restauration Manuelle
@@ -152,7 +152,7 @@ ruby start_with_persistence.rb
 4. **Migration**: Transfert automatique des anciennes données
 5. **Monitoring**: Statistiques détaillées au démarrage
 
-## 🎯 Capacité
+## Capacité
 
 - **1 million de connexions simultanées** (théorique)
 - **500 000 connexions stables** avec 10 workers

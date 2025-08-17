@@ -1,8 +1,8 @@
-# 🚀 Guide de Démarrage Simplifié - STORM Backend
+# Guide de Démarrage Simplifié - STORM Backend
 
 ## Scripts de Démarrage Disponibles
 
-### 1. `./start_simple.sh` ⭐ **RECOMMANDÉ**
+### 1. `./start_simple.sh` **RECOMMANDÉ**
 **Script de démarrage automatique avec sauvegarde**
 
 ```bash
@@ -10,11 +10,11 @@
 ```
 
 **Ce que fait ce script :**
-- ✅ Sauvegarde automatique de toutes les BDD existantes
-- ✅ Arrêt propre des processus existants
-- ✅ Démarrage avec configuration de persistance si disponible
-- ✅ Fallback vers Docker si nécessaire
-- ✅ Aucune interaction utilisateur requise
+- Sauvegarde automatique de toutes les BDD existantes
+- Arrêt propre des processus existants
+- Démarrage avec configuration de persistance si disponible
+- Fallback vers Docker si nécessaire
+- Aucune interaction utilisateur requise
 
 ### 2. `./start_hermes.sh`
 **Script original avec sauvegarde ajoutée**
@@ -24,10 +24,10 @@
 ```
 
 **Ce que fait ce script :**
-- ✅ Sauvegarde automatique des BDD existantes
-- ✅ Pull du code depuis Git
-- ❓ Demande si vous voulez utiliser la persistance
-- 📦 Utilise Docker par défaut
+- Sauvegarde automatique des BDD existantes
+- Pull du code depuis Git
+- Demande si vous voulez utiliser la persistance
+- Utilise Docker par défaut
 
 ### 3. `ruby start_with_persistence.rb`
 **Démarrage direct avec persistance**
@@ -37,11 +37,11 @@ ruby start_with_persistence.rb
 ```
 
 **Ce que fait ce script :**
-- ✅ Démarrage direct avec Puma
-- ✅ Configuration de persistance complète
-- ⚠️ Pas de sauvegarde automatique
+- Démarrage direct avec Puma
+- Configuration de persistance complète
+- Pas de sauvegarde automatique
 
-## 🗄️ Sauvegarde Automatique des Bases de Données
+## Sauvegarde Automatique des Bases de Données
 
 Tous les scripts de démarrage sauvegardent automatiquement :
 - `chat_app.db`
@@ -60,7 +60,7 @@ data/backups/YYYYMMDD_HHMMSS/
 └── ...
 ```
 
-## 🔄 Workflow Recommandé après Pull VPS
+## Workflow Recommandé après Pull VPS
 
 1. **Pull du code depuis le VPS**
    ```bash
@@ -77,7 +77,7 @@ data/backups/YYYYMMDD_HHMMSS/
    - BDD sauvegardées dans `data/backups/`
    - Nouvelle BDD persistante créée si nécessaire
 
-## 📊 Vérification de la Persistance
+## Vérification de la Persistance
 
 ```bash
 # Tester la persistance
@@ -90,7 +90,7 @@ ruby test_persistence.rb stats
 ruby test_persistence.rb cleanup
 ```
 
-## 🛠️ Dépannage
+## Dépannage
 
 ### Problème : "Permission denied"
 ```bash
@@ -157,14 +157,14 @@ bundle --version
 bundle check
 ```
 
-## 📝 Notes Importantes
+## Notes Importantes
 
 - **Sauvegarde automatique** : Toujours effectuée avant le démarrage
 - **Persistance** : Données conservées entre les redémarrages
 - **Performance** : Configuration SQLite optimisée (WAL mode)
 - **Sécurité** : Pool de connexions avec gestion des erreurs
 
-## 🎯 Utilisation Recommandée
+## Utilisation Recommandée
 
 Pour un usage quotidien après pull VPS :
 ```bash

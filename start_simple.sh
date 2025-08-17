@@ -1,113 +1,122 @@
 #!/bin/bash
 
-# Script de démarrage simplifié pour STORM
-# Sauvegarde automatique des BDD + démarrage avec persistance
+# Script de démarrage simplifié pour STORM avec sauvegarde automatique
+echo "[SIMPLE] Démarrage simplifié du serveur STORM..."
+echo ""
 
-CURRENT_DIR=$(pwd)
+# Configuration
+BACKUP_DIR="data/backups"
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+BACKUP_PATH="$BACKUP_DIR/$TIMESTAMP"
 
-echo "STORM - Démarrage simplifié"
-echo "=============================="
+# Créer le répertoire de sauvegarde
+echo "[SAUVEGARDE] Création du répertoire de sauvegarde..."
+mkdir -p "$BACKUP_PATH"
+echo "   Répertoire: $BACKUP_PATH"
+echo ""
 
-# Fonction pour sauvegarder les bases de données existantes
-backup_databases() {
-    echo "Sauvegarde automatique des bases de données."
-    
-    # Créer le répertoire de sauvegarde avec timestamp
-    BACKUP_DIR="$CURRENT_DIR/data/backups/$(date +%Y%m%d_%H%M%S)"
-    mkdir -p "$BACKUP_DIR"
-    
-    # Liste des bases de données à sauvegarder
-    DB_FILES=("chat_app.db" "storm.db" "chat.db" "users.db" "storm_persistent.db")
-    
-    BACKUP_COUNT=0
-    for db_file in "${DB_FILES[@]}"; do
-        # Chercher dans le répertoire courant et data/
-        for search_path in "$CURRENT_DIR" "$CURRENT_DIR/data"; do
-            if [ -f "$search_path/$db_file" ]; then
-                echo " Sauvegarde: $db_file"
-                cp "$search_path/$db_file" "$BACKUP_DIR/"
-                # Sauvegarder aussi les fichiers WAL et SHM s'ils existent
-                [ -f "$search_path/$db_file-wal" ] && cp "$search_path/$db_file-wal" "$BACKUP_DIR/"
-                [ -f "$search_path/$db_file-shm" ] && cp "$search_path/$db_file-shm" "$BACKUP_DIR/"
-                BACKUP_COUNT=$((BACKUP_COUNT + 1))
-                break
-            fi
-        done
-    done
-    
-    if [ $BACKUP_COUNT -gt 0 ]; then
-        echo " $BACKUP_COUNT BDD sauvegardée(s) dans: $BACKUP_DIR"
-        # Créer un fichier de métadonnées
-        echo "Sauvegarde automatique - $(date)" > "$BACKUP_DIR/backup_info.txt"
-        echo "Source: $CURRENT_DIR" >> "$BACKUP_DIR/backup_info.txt"
-        echo "Fichiers: $BACKUP_COUNT" >> "$BACKUP_DIR/backup_info.txt"
-    else
-        echo "  ℹ️  Aucune BDD existante trouvée"
-        rmdir "$BACKUP_DIR" 2>/dev/null
+# Sauvegarder les bases de données existantes
+echo "[SAUVEGARDE] Sauvegarde des bases de données existantes..."
+for db in chat_app.db storm.db chat.db users.db storm_persistent.db; do
+    if [ -f "$db" ]; then
+        cp "$db" "$BACKUP_PATH/"
+        echo "   $db sauvegardé"
     fi
-    echo ""
-}
+done
 
-# Sauvegarder automatiquement
-backup_databases
+# Sauvegarder les fichiers associés (WAL, SHM)
+for ext in shm wal; do
+    for db in chat_app storm chat users storm_persistent; do
+        if [ -f "${db}.db-${ext}" ]; then
+            cp "${db}.db-${ext}" "$BACKUP_PATH/"
+            echo "   ${db}.db-${ext} sauvegardé"
+        fi
+    done
+done
 
-# Fonction pour vérifier et corriger bundler
+# Créer le fichier d'information de sauvegarde
+echo "Sauvegarde automatique créée le $(date)" > "$BACKUP_PATH/backup_info.txt"
+echo "Script utilisé: start_simple.sh" >> "$BACKUP_PATH/backup_info.txt"
+echo "Configuration détectée: $([ -f 'config/persistence.yml' ] || [ -f 'persistence.yml' ] && echo 'Persistance activée' || echo 'Mode standard')" >> "$BACKUP_PATH/backup_info.txt"
+echo ""
+
+# Fonction pour corriger les problèmes de bundler
 fix_bundler_issues() {
-    echo "🔧 Vérification des dépendances bundler..."
+    echo "[BUNDLER] Vérification et correction de bundler..."
     
     # Vérifier si bundler est disponible
     if ! command -v bundle &> /dev/null; then
-        echo "📦 Installation de bundler..."
+        echo "   ATTENTION: Bundler non trouvé, installation..."
         gem install bundler --no-document
     fi
     
-    # Vérifier la version dans Gemfile.lock
+    # Vérifier la version requise dans Gemfile.lock
     if [ -f "Gemfile.lock" ]; then
-        REQUIRED_VERSION=$(grep -A 1 "BUNDLED WITH" Gemfile.lock | tail -n 1 | tr -d ' ')
+        REQUIRED_VERSION=$(grep -A 1 "BUNDLED WITH" Gemfile.lock | tail -1 | tr -d ' ')
         if [ ! -z "$REQUIRED_VERSION" ]; then
-            echo "📋 Version requise: $REQUIRED_VERSION"
-            
-            # Installer la version spécifique si nécessaire
+            echo "   Version requise détectée: $REQUIRED_VERSION"
             if ! gem list bundler | grep -q "$REQUIRED_VERSION"; then
-                echo "📦 Installation de bundler:$REQUIRED_VERSION..."
-                gem install bundler:"$REQUIRED_VERSION" --no-document 2>/dev/null || {
-                    echo "⚠️  Installation de la version spécifique échouée, mise à jour vers la dernière..."
-                    bundle update --bundler 2>/dev/null || true
-                }
+                echo "   Installation de bundler:$REQUIRED_VERSION..."
+                gem install bundler:$REQUIRED_VERSION --no-document
             fi
         fi
     fi
     
-    # Installer les gems
-    echo "💎 Installation des gems..."
-    bundle install --retry=3 || {
-        echo "⚠️  bundle install échoué, tentative avec gem install..."
-        gem install sqlite3 sinatra bcrypt colorize websocket-driver webrick rack mini_magick --no-document
-    }
-    
-    echo "✅ Dépendances vérifiées"
+    # Installer les gems du projet
+    echo "   Installation des gems du projet..."
+    if ! bundle install --retry=3; then
+        echo "   ATTENTION: bundle install échoué, tentative de correction..."
+        rm -rf .bundle/
+        rm -f Gemfile.lock
+        bundle install --retry=3 || {
+            echo "   ERREUR: Échec de l'installation des gems"
+            echo "   Installation manuelle des gems critiques..."
+            gem install sqlite3 sinatra bcrypt colorize websocket-driver webrick rack mini_magick --no-document
+        }
+    fi
     echo ""
 }
+
+# Arrêter les processus existants
+echo "[NETTOYAGE] Arrêt des processus Ruby existants..."
+pkill -f "ruby.*start" 2>/dev/null || true
+pkill -f "puma" 2>/dev/null || true
+sleep 2
+echo ""
 
 # Corriger les problèmes de bundler
 fix_bundler_issues
 
-# Arrêter les processus existants
-echo "Arrêt des processus existants."
-pkill -f "ruby.*start_with_persistence.rb" 2>/dev/null || true
-pkill -f "puma" 2>/dev/null || true
-pkill -f "srv_message.rb" 2>/dev/null || true
-pkill -f "srv_upload.rb" 2>/dev/null || true
-docker rm -f hermes_container 2>/dev/null || true
-echo "Processus arrêtés."
-sleep 1
-
-# Vérifier la configuration de persistance
-if [ -f "$CURRENT_DIR/start_with_persistence.rb" ] && [ -f "$CURRENT_DIR/config/database_config.rb" ]; then
-    echo "Démarrage avec configuration de persistance."
+# Détecter la configuration de persistance
+echo "[DETECTION] Vérification de la configuration..."
+if [ -f "config/persistence.yml" ] || [ -f "persistence.yml" ]; then
+    echo "   Configuration de persistance trouvée"
+    echo "   Démarrage avec persistance..."
+    echo ""
+    ruby start_with_persistence.rb
+elif [ -f "start_with_persistence.rb" ]; then
+    echo "   ATTENTION: Fichier de persistance trouvé mais pas de config"
+    echo "   Tentative de démarrage avec persistance..."
+    echo ""
     ruby start_with_persistence.rb
 else
-    echo "Configuration de persistance non trouvée."
-    echo "Fallback vers la configuration Docker..."
-    ./start_hermes.sh
+    echo "   ATTENTION: Pas de configuration de persistance détectée"
+    if [ -f "start.rb" ]; then
+        echo "   Démarrage du serveur standard..."
+        echo ""
+        ruby start.rb
+    elif [ -f "srv_message.rb" ]; then
+        echo "   Démarrage du serveur de messages..."
+        echo ""
+        ruby srv_message.rb
+    else
+        echo "   ERREUR: Aucun serveur trouvé"
+        echo "   Tentative avec Docker..."
+        if command -v docker &> /dev/null; then
+            docker-compose up --build
+        else
+            echo "   ERREUR: Docker non disponible"
+            exit 1
+        fi
+    fi
 fi

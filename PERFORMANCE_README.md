@@ -1,10 +1,10 @@
-# 🚀 ULTRA-FAST RUBY WEBSOCKET SERVER
+# ULTRA-FAST RUBY WEBSOCKET SERVER
 
 ## Performance Optimizations Overview
 
 Ce projet a été optimisé pour atteindre les **performances les plus rapides jamais créées en Ruby** pour un serveur WebSocket. Voici un aperçu complet de toutes les optimisations implémentées.
 
-## 🎯 Objectifs de Performance
+## Objectifs de Performance
 
 - **Latence ultra-faible** : < 1ms pour les opérations de cache
 - **Débit élevé** : > 10,000 messages/seconde
@@ -12,7 +12,7 @@ Ce projet a été optimisé pour atteindre les **performances les plus rapides j
 - **Utilisation mémoire optimisée** : Garbage collection minimisée
 - **Scalabilité horizontale** : Architecture multi-processus
 
-## 🔥 Optimisations Implémentées
+## Optimisations Implémentées
 
 ### 1. Système de Cache Ultra-Rapide (`lib/ultra_fast_cache.rb`)
 
@@ -93,7 +93,7 @@ Worker culling: Gestion intelligente de la mémoire
 TCP optimizations: Configuration socket avancée
 ```
 
-## 📊 Benchmarks et Métriques
+## Benchmarks et Métriques
 
 ### Script de Benchmark (`benchmark_performance.rb`)
 
@@ -124,7 +124,7 @@ Concurrent operations:     50,000 i/s (20 threads)
 - Statistiques GC
 ```
 
-## 🚀 Démarrage Rapide
+## Démarrage Rapide
 
 ### 1. Installation des Dépendances
 
@@ -154,7 +154,7 @@ bundle exec puma -C config/puma.rb
 ruby benchmark_performance.rb
 ```
 
-## 🔧 Configuration Avancée
+## Configuration Avancée
 
 ### Variables d'Environnement
 
@@ -181,7 +181,7 @@ PORT=3630                     # Port d'écoute
 * hard nproc 32768
 ```
 
-## 📈 Monitoring et Debugging
+## Monitoring et Debugging
 
 ### Logs de Performance
 
@@ -201,7 +201,7 @@ GET /rooms/stats        # Statistiques des salons
 GET /performance        # Métriques de performance
 ```
 
-## 🎛️ Tuning Avancé
+## Tuning Avancé
 
 ### 1. Optimisation GC
 
@@ -232,7 +232,7 @@ compression: true       # Compression LZ4
 stats: true            # Statistiques activées
 ```
 
-## 🔍 Profiling et Optimisation
+## Profiling et Optimisation
 
 ### Outils Intégrés
 
@@ -256,7 +256,7 @@ end
 - **CPU** : Utilisation processeur
 - **GC** : Fréquence et durée du garbage collection
 
-## 🚨 Troubleshooting
+## Troubleshooting
 
 ### Problèmes Courants
 
@@ -278,7 +278,7 @@ end
    UltraFastCache.instance.get_performance_stats
    ```
 
-## 📚 Architecture Technique
+## Architecture Technique
 
 ### Stack Technologique
 
@@ -297,7 +297,7 @@ end
 - **Pool** : Gestion des threads et connexions
 - **Circuit Breaker** : Protection contre les surcharges
 
-## 🎯 Résultats de Performance
+## Résultats de Performance
 
 ### Comparaison avec l'Implémentation Standard
 
@@ -316,7 +316,7 @@ end
 - **Mémoire** : Optimisé pour 32GB+ RAM
 - **Réseau** : 10Gbps+ supporté
 
-## 🔮 Roadmap Future
+## Roadmap Future
 
 ### Optimisations Prévues
 
@@ -328,11 +328,11 @@ end
 
 ---
 
-## 🏆 Conclusion
+## Conclusion
 
 Cette implémentation représente l'état de l'art en matière de performance pour un serveur WebSocket Ruby. Chaque composant a été méticuleusement optimisé pour atteindre des performances exceptionnelles tout en maintenant la lisibilité et la maintenabilité du code.
 
-**Performance Target Achieved: ✅ Les performances les plus rapides jamais créées en Ruby**
+**Performance Target Achieved: Les performances les plus rapides jamais créées en Ruby**
 
 ---
 

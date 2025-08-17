@@ -15,7 +15,7 @@ class PlayMusicCommand < BaseCommand
 
     special_msg = "PLAY_MUSIC|#{chat_room.current_music_url}"
     driver.special(special_msg)
-    driver.text("🎵 Lecture de la musique partagée par #{chat_room.current_music_user}")
+    driver.text("⚪️ Lecture de la musique partagée par #{chat_room.current_music_user}")
     nil
   end
 end

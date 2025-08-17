@@ -46,7 +46,7 @@ end
 
 # Hooks
 before_fork do
-  puts "🚀 Puma master process starting..."
+  puts "Puma master process starting..."
 end
 
 on_worker_boot do
@@ -54,10 +54,10 @@ on_worker_boot do
 end
 
 on_worker_shutdown do
-  puts "🛑 Puma worker #{Process.pid} shutting down"
+  puts "Puma worker #{Process.pid} shutting down"
 end
 
-print "🎯 Puma configuration loaded\n"
+print "⚪️ Puma configuration loaded\n"
 print "   Workers: #{ENV.fetch('WEB_CONCURRENCY', cpu_count)}\n"
 print "   Threads: #{min_threads_count}-#{max_threads_count}\n"
 print "   Environment: #{ENV.fetch('RACK_ENV', 'development')}\n"
