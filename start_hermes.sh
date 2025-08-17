@@ -88,9 +88,9 @@ echo "- HTTP (uploads): 4567"
 echo "Dossier des uploads monté dans: $CURRENT_DIR/uploads"
 
 if docker ps | grep -q hermes_container; then
-  echo "⚫️ Le conteneur fonctionne correctement."
+  echo "⚪️ Le conteneur fonctionne correctement."
 else
-  echo "⚪️ Le conteneur s'est arrêté. Vérifiez les logs pour plus de détails:"
+  echo "⚫️ Le conteneur s'est arrêté. Vérifiez les logs pour plus de détails:"
   docker logs hermes_container
 
   echo "Tentative de démarrage sans le serveur d'upload..."
