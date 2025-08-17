@@ -192,29 +192,6 @@ class ChatRoom
     lines.map { |line| " #{line}" }.join("\n")
   end
 
-  private
-
-  def escape_html(text)
-    text.to_s.gsub(/[&<>"]/) { |match| {'&' => '&amp;', '<' => '&lt;', '>' => '&gt;', '"' => '&quot;'}[match] }
-  end
-
-  # Nouvelles méthodes pour la gestion des thèmes de salon
-  def broadcast_text_color(color, username, save_to_room = false)
-    if save_to_room && can_modify_room_theme?(username)
-      @room_text_color = color
-      save_room_theme
-    end
-    broadcast_special("CHANGE_TEXTCOLOR|#{color}")
-  end
-
-  def broadcast_font(font, username, save_to_room = false)
-    if save_to_room && can_modify_room_theme?(username)
-      @room_font = font
-      save_room_theme
-    end
-    broadcast_special("CHANGE_FONT|#{font}")
-  end
-
   # Liste des administrateurs du système
   ADMIN_USERS = ['DALM1', 'admin', 'administrator'].freeze
   
@@ -241,6 +218,29 @@ class ChatRoom
   # Vérifier si c'est un salon système
   def system_room?
     ['Main', 'General', 'users'].include?(@name)
+  end
+
+  private
+
+  def escape_html(text)
+    text.to_s.gsub(/[&<>"]/) { |match| {'&' => '&amp;', '<' => '&lt;', '>' => '&gt;', '"' => '&quot;'}[match] }
+  end
+
+  # Nouvelles méthodes pour la gestion des thèmes de salon
+  def broadcast_text_color(color, username, save_to_room = false)
+    if save_to_room && can_modify_room_theme?(username)
+      @room_text_color = color
+      save_room_theme
+    end
+    broadcast_special("CHANGE_TEXTCOLOR|#{color}")
+  end
+
+  def broadcast_font(font, username, save_to_room = false)
+    if save_to_room && can_modify_room_theme?(username)
+      @room_font = font
+      save_room_theme
+    end
+    broadcast_special("CHANGE_FONT|#{font}")
   end
 
   # Appliquer le thème du salon à un utilisateur
