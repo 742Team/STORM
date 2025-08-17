@@ -22,6 +22,12 @@ class BackgroundCommand < BaseCommand
       chat_room.broadcast_background(bg_url, true, username)
       driver.text(" ⚪️ Arrière-plan du salon modifié")
     else
+      # Dans les salons système, ne pas permettre aux invités de changer l'arrière-plan pour tous
+      if chat_room.system_room?
+        driver.text(" ⚠️ Vous ne pouvez pas modifier l'arrière-plan dans ce salon système")
+        return nil
+      end
+      
       # Modifier seulement pour l'utilisateur (si pas de thème de salon)
       if chat_room.has_room_theme?
         driver.text(" ⚠️ Vous ne pouvez pas modifier l'arrière-plan dans ce salon")
