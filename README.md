@@ -1,5 +1,5 @@
 <h1 align="center">
-STORM MICRO
+STORM™
 </h1>
 
 ![Capture d’écran 2025-03-08 à 22 33 33](https://github.com/742Team/STORM/blob/1.6.8/hermes.png)
