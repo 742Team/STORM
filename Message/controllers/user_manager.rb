@@ -36,12 +36,12 @@ class UserManager
       username = user_data[2]
 
       if BCrypt::Password.new(password_digest) == password
-        "| Logged in as #{username}"
+        " Logged in as #{username}"
       else
-        "| Invalid password"
+        " Invalid password"
       end
     rescue => ex
-      "| Error #{ex.message}"
+      " Error #{ex.message}"
     end
   end
   

@@ -3,6 +3,26 @@
 # Use current directory instead of hardcoded path
 CURRENT_DIR=$(pwd)
 
+# Récupérer la dernière version du code depuis Git
+echo "Récupération de la dernière version du code..."
+if git status >/dev/null 2>&1; then
+    current_branch=$(git branch --show-current)
+    echo "Branche actuelle: $current_branch"
+    
+    # Fetch les dernières modifications
+    git fetch origin
+    
+    # Pull les modifications si disponibles
+    if git pull origin "$current_branch" >/dev/null 2>&1; then
+        echo "✅ Code mis à jour avec succès"
+    else
+        echo "⚠️  Aucune mise à jour disponible ou erreur lors du pull"
+    fi
+else
+    echo "⚠️  Ce répertoire n'est pas un dépôt Git, pas de mise à jour automatique"
+fi
+echo ""
+
 docker rm -f hermes_container 2>/dev/null
 
 # Create Gemfile with specific sqlite3 version to avoid build issues

@@ -220,6 +220,26 @@ class ChatRoom
     ['Main', 'General', 'users'].include?(@name)
   end
 
+  # Charger le thème du salon depuis la base de données
+  def load_room_theme
+    return unless @controller
+    
+    begin
+      db = @controller.db_connection
+      result = db.execute("SELECT background_url, text_color, font_family FROM room_themes WHERE room_name = ?", [@name])
+      db.close
+      
+      if !result.empty?
+        theme = result[0]
+        @room_background = theme[0]
+        @room_text_color = theme[1]
+        @room_font = theme[2]
+      end
+    rescue => ex
+      puts "Erreur lors du chargement du thème de salon: #{ex.message}"
+    end
+  end
+
   private
 
   def escape_html(text)
@@ -304,26 +324,6 @@ class ChatRoom
       db.close
     rescue => ex
       puts "Erreur lors de la sauvegarde du thème de salon: #{ex.message}"
-    end
-  end
-
-  # Charger le thème du salon depuis la base de données
-  def load_room_theme
-    return unless @controller
-    
-    begin
-      db = @controller.db_connection
-      result = db.execute("SELECT background_url, text_color, font_family FROM room_themes WHERE room_name = ?", [@name])
-      db.close
-      
-      if !result.empty?
-        theme = result[0]
-        @room_background = theme[0]
-        @room_text_color = theme[1]
-        @room_font = theme[2]
-      end
-    rescue => ex
-      puts "Erreur lors du chargement du thème de salon: #{ex.message}"
     end
   end
 

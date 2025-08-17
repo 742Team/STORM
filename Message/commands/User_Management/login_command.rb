@@ -19,7 +19,7 @@ class LoginCommand < BaseCommand
     user_manager = @controller.instance_variable_get(:@user_manager)
     login_result = user_manager.login_account(email, pass)
     
-    if login_result.start_with?("| Logged in as")
+    if login_result.start_with?(" Logged in as")
       new_pseudo = login_result.split("as ")[1]
 
       chat_room.remove_client(username)
