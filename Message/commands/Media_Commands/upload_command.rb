@@ -8,7 +8,7 @@ class UploadCommand < BaseCommand
   end
   
   def execute(parts, driver, chat_room, username)
-    driver.text("| 📁 Demande d'upload de fichier")
+    driver.text(" 📁 Demande d'upload de fichier")
     special_msg = "REQUEST_FILE_UPLOAD|"
     driver.special(special_msg)
     nil

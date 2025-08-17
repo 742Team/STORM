@@ -13,7 +13,7 @@ class SavePreferencesCommand < BaseCommand
     preference_manager = @controller.instance_variable_get(:@preference_manager)
     preference_manager.save_all_preferences(username, chat_room)
     
-    driver.text("| Préférences sauvegardées avec succès")
+    driver.text(" Préférences sauvegardées avec succès")
     nil
   end
 end

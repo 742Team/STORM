@@ -10,8 +10,8 @@ class ClearCommand < BaseCommand
   def execute(parts, driver, chat_room, username)
     chat_room.history.clear
     chat_room.broadcast_special("CLEAR_LOGS|")
-    driver.text("|| Logs cleared.")
-    driver.text("|| ⚠️ Connected to ")
+    driver.text(" Logs cleared.")
+    driver.text(" ⚠️ Connected to ")
     nil
   end
 end

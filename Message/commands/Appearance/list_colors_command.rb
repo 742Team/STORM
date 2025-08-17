@@ -9,7 +9,7 @@ class ListColorsCommand < BaseCommand
   
   def execute(parts, driver, chat_room, username)
     color_list = @controller::COLOR_NAMES.keys.sort.join(", ")
-    driver.text("| Noms de couleurs disponibles: #{color_list}")
+    driver.text(" Noms de couleurs disponibles: #{color_list}")
     nil
   end
 end
