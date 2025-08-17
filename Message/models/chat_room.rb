@@ -2,6 +2,8 @@ class ChatRoom
   attr_accessor :name, :password, :clients, :creator, :history, :banned_users, :client_colors
   attr_accessor :current_music_url, :current_music_user, :created_at
   attr_accessor :controller
+  # Nouvelles propriétés pour les thèmes de salon
+  attr_accessor :room_background, :room_text_color, :room_font
 
   def initialize(name, password=nil, creator=nil)
     @name = name
@@ -16,6 +18,11 @@ class ChatRoom
     @created_at = nil
     # Don't access ChatController.instance here - it will be set from outside
     @controller = nil
+    
+    # Initialiser les thèmes de salon
+    @room_background = nil
+    @room_text_color = nil
+    @room_font = nil
   end
 
   def add_client(driver, username)
@@ -24,6 +31,10 @@ class ChatRoom
       return false
     end
     @clients[username] = driver
+    
+    # Appliquer le thème du salon lors de l'entrée
+    apply_room_theme_to_user(driver, username)
+    
     broadcast_message(@controller.translate('user_joined_thread', nil, [username]), 'Server')
     return true
   end
@@ -117,7 +128,12 @@ class ChatRoom
     driver.text("CLEAR_LOGS|")
   end
 
-  def broadcast_background(url)
+  def broadcast_background(url, save_to_room = false, username = nil)
+    # Si c'est le créateur du salon ou un salon système, sauvegarder le thème
+    if save_to_room && can_modify_room_theme?(username)
+      @room_background = url
+      save_room_theme
+    end
     broadcast_special("CHANGE_BG|#{url}")
   end
 
@@ -180,6 +196,124 @@ class ChatRoom
 
   def escape_html(text)
     text.to_s.gsub(/[&<>"]/) { |match| {'&' => '&amp;', '<' => '&lt;', '>' => '&gt;', '"' => '&quot;'}[match] }
+  end
+
+  # Nouvelles méthodes pour la gestion des thèmes de salon
+  def broadcast_text_color(color, username, save_to_room = false)
+    if save_to_room && can_modify_room_theme?(username)
+      @room_text_color = color
+      save_room_theme
+    end
+    broadcast_special("CHANGE_TEXTCOLOR|#{color}")
+  end
+
+  def broadcast_font(font, username, save_to_room = false)
+    if save_to_room && can_modify_room_theme?(username)
+      @room_font = font
+      save_room_theme
+    end
+    broadcast_special("CHANGE_FONT|#{font}")
+  end
+
+  # Vérifier si l'utilisateur peut modifier le thème du salon
+  def can_modify_room_theme?(username)
+    # Le créateur peut toujours modifier
+    return true if @creator == username
+    
+    # Dans les salons système (comme "Main"), seuls les admins peuvent modifier
+    return false if system_room?
+    
+    # Dans les autres salons, seul le créateur peut modifier
+    false
+  end
+
+  # Vérifier si c'est un salon système
+  def system_room?
+    ['Main', 'General', 'users'].include?(@name)
+  end
+
+  # Appliquer le thème du salon à un utilisateur
+  def apply_room_theme_to_user(driver, username)
+    return unless has_room_theme?
+    
+    # Appliquer l'arrière-plan du salon
+    if @room_background
+      driver.special("CHANGE_BG|#{@room_background}")
+    end
+    
+    # Appliquer la couleur de texte du salon
+    if @room_text_color
+      driver.special("CHANGE_TEXTCOLOR|#{@room_text_color}")
+    end
+    
+    # Appliquer la police du salon
+    if @room_font
+      driver.special("CHANGE_FONT|#{@room_font}")
+    end
+    
+    # Appliquer la couleur du pseudo de l'utilisateur (préférence personnelle)
+    preference_manager = @controller.instance_variable_get(:@preference_manager)
+    if preference_manager
+      user_color = preference_manager.get_user_color_preference(username)
+      if user_color
+        set_color(username, user_color)
+      end
+    end
+  end
+
+  # Vérifier si le salon a un thème personnalisé
+  def has_room_theme?
+    @room_background || @room_text_color || @room_font
+  end
+
+  # Sauvegarder le thème du salon en base de données
+  def save_room_theme
+    return unless @controller
+    
+    begin
+      db = @controller.db_connection
+      
+      # Vérifier si le salon existe déjà dans la table des thèmes
+      existing = db.execute("SELECT id FROM room_themes WHERE room_name = ?", [@name])
+      
+      if existing.empty?
+        # Créer un nouveau thème de salon
+        db.execute(
+          "INSERT INTO room_themes (room_name, background_url, text_color, font_family, creator) VALUES (?, ?, ?, ?, ?)",
+          [@name, @room_background, @room_text_color, @room_font, @creator]
+        )
+      else
+        # Mettre à jour le thème existant
+        db.execute(
+          "UPDATE room_themes SET background_url = ?, text_color = ?, font_family = ? WHERE room_name = ?",
+          [@room_background, @room_text_color, @room_font, @name]
+        )
+      end
+      
+      db.close
+    rescue => ex
+      puts "Erreur lors de la sauvegarde du thème de salon: #{ex.message}"
+    end
+  end
+
+  # Charger le thème du salon depuis la base de données
+  def load_room_theme
+    return unless @controller
+    
+    begin
+      db = @controller.db_connection
+      result = db.execute("SELECT background_url, text_color, font_family FROM room_themes WHERE room_name = ?", [@name])
+      db.close
+      
+      if !result.empty?
+        theme = result[0]
+        @room_background = theme[0]
+        @room_text_color = theme[1]
+        @room_font = theme[2]
+      end
+    rescue => ex
+      puts "Erreur lors du chargement du thème de salon: #{ex.message}"
+    end
   end
 
   # Ajouter cette méthode à la classe ChatRoom

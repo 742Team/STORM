@@ -118,6 +118,10 @@ class ChatController
       SQL
       
       db.close
+      
+      # Initialize room themes table via preference manager
+      @preference_manager.create_room_themes_table if @preference_manager
+      
       puts "Database initialized successfully"
     rescue => ex
       puts translate('database_init_error', nil, [ex.message])
@@ -163,6 +167,9 @@ class ChatController
     
     # Save to database if it's not a temporary room
     save_room_to_db(name, password, creator)
+    
+    # Load room theme if it exists
+    room.load_room_theme
     
     return room
   end
@@ -845,6 +852,9 @@ class ChatController
           @chat_rooms[name] = ChatRoom.new(name, password, creator)
           @chat_rooms[name].controller = self  # Set the controller reference
           @chat_rooms[name].created_at = Time.parse(created_at) rescue Time.now
+          
+          # Load room theme if it exists
+          @chat_rooms[name].load_room_theme
         end
         
         db.close

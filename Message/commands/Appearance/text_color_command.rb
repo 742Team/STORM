@@ -16,16 +16,32 @@ class TextColorCommand < BaseCommand
 
     hex_color = @controller.convert_color(new_txt_color)
 
-    special_msg = "CHANGE_TEXTCOLOR|#{hex_color}"
-    chat_room.broadcast_special(special_msg)
+    # Vérifier si l'utilisateur peut modifier le thème du salon
+    can_modify_room = chat_room.can_modify_room_theme?(username)
     
-    # Save preference if user is logged in
-    preference_manager = @controller.instance_variable_get(:@preference_manager)
-    if preference_manager
-      preference_manager.save_user_preference(username, 'text_color', hex_color)
+    if can_modify_room
+      # Modifier le thème du salon
+      chat_room.broadcast_text_color(hex_color, username, true)
+      driver.text(" ✅ Couleur de texte du salon modifiée")
+    else
+      # Modifier seulement pour l'utilisateur (si pas de thème de salon)
+      if chat_room.has_room_theme?
+        driver.text(" ❌ Vous ne pouvez pas modifier la couleur de texte dans ce salon")
+        return nil
+      else
+        special_msg = "CHANGE_TEXTCOLOR|#{hex_color}"
+        chat_room.broadcast_special(special_msg)
+        
+        # Sauvegarder comme préférence utilisateur
+        preference_manager = @controller.instance_variable_get(:@preference_manager)
+        if preference_manager
+          preference_manager.save_user_preference(username, 'text_color', hex_color)
+        end
+        
+        driver.text(@controller.translate('text_color_changed', username, [new_txt_color, hex_color]))
+      end
     end
-
-    driver.text(@controller.translate('text_color_changed', username, [new_txt_color, hex_color]))
+    
     nil
   end
 end
