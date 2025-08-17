@@ -18,13 +18,13 @@ class BackgroundCommand < BaseCommand
     can_modify_room = chat_room.can_modify_room_theme?(username)
     
     if can_modify_room
-      # Modifier le thème du salon
+      # Modifier le thème du salon (créateur ou admin)
       chat_room.broadcast_background(bg_url, true, username)
       driver.text(" ⚪️ Arrière-plan du salon modifié")
     else
-      # Dans les salons système, ne pas permettre aux invités de changer l'arrière-plan pour tous
+      # Dans les salons système, seuls les admins et créateurs peuvent modifier
       if chat_room.system_room?
-        driver.text(" ⚠️ Vous ne pouvez pas modifier l'arrière-plan dans ce salon système")
+        driver.text(" ⚠️ Vous ne pouvez pas modifier l'arrière-plan dans ce salon système. Seuls les administrateurs peuvent le faire.")
         return nil
       end
       

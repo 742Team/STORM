@@ -215,16 +215,27 @@ class ChatRoom
     broadcast_special("CHANGE_FONT|#{font}")
   end
 
+  # Liste des administrateurs du système
+  ADMIN_USERS = ['DALM1', 'admin', 'administrator'].freeze
+  
   # Vérifier si l'utilisateur peut modifier le thème du salon
   def can_modify_room_theme?(username)
     # Le créateur peut toujours modifier
     return true if @creator == username
+    
+    # Les administrateurs peuvent toujours modifier, même dans les salons système
+    return true if is_admin?(username)
     
     # Dans les salons système (comme "Main"), seuls les admins peuvent modifier
     return false if system_room?
     
     # Dans les autres salons, seul le créateur peut modifier
     false
+  end
+  
+  # Vérifier si l'utilisateur est un administrateur
+  def is_admin?(username)
+    ADMIN_USERS.include?(username)
   end
 
   # Vérifier si c'est un salon système
