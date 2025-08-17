@@ -65,7 +65,8 @@ class PerformanceOptimizer
         private
         
         def create_connection
-          SQLite3::Database.new('storm.db')
+          require_relative 'config/database_config'
+          DatabaseConfig.get_connection
         end
       end
       

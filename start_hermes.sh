@@ -3,6 +3,49 @@
 # Use current directory instead of hardcoded path
 CURRENT_DIR=$(pwd)
 
+# Fonction pour sauvegarder les bases de données existantes
+backup_databases() {
+    echo " Sauvegarde des bases de données existantes..."
+    
+    # Créer le répertoire de sauvegarde avec timestamp
+    BACKUP_DIR="$CURRENT_DIR/data/backups/$(date +%Y%m%d_%H%M%S)"
+    mkdir -p "$BACKUP_DIR"
+    
+    # Liste des bases de données à sauvegarder
+    DB_FILES=("chat_app.db" "storm.db" "chat.db" "users.db" "storm_persistent.db")
+    
+    BACKUP_COUNT=0
+    for db_file in "${DB_FILES[@]}"; do
+        # Chercher dans le répertoire courant et data/
+        for search_path in "$CURRENT_DIR" "$CURRENT_DIR/data"; do
+            if [ -f "$search_path/$db_file" ]; then
+                echo "  Sauvegarde de $db_file..."
+                cp "$search_path/$db_file" "$BACKUP_DIR/"
+                # Sauvegarder aussi les fichiers WAL et SHM s'ils existent
+                [ -f "$search_path/$db_file-wal" ] && cp "$search_path/$db_file-wal" "$BACKUP_DIR/"
+                [ -f "$search_path/$db_file-shm" ] && cp "$search_path/$db_file-shm" "$BACKUP_DIR/"
+                BACKUP_COUNT=$((BACKUP_COUNT + 1))
+                break
+            fi
+        done
+    done
+    
+    if [ $BACKUP_COUNT -gt 0 ]; then
+        echo "  $BACKUP_COUNT base(s) de données sauvegardée(s) dans: $BACKUP_DIR"
+        # Créer un fichier de métadonnées
+        echo "Sauvegarde créée le: $(date)" > "$BACKUP_DIR/backup_info.txt"
+        echo "Répertoire source: $CURRENT_DIR" >> "$BACKUP_DIR/backup_info.txt"
+        echo "Nombre de fichiers: $BACKUP_COUNT" >> "$BACKUP_DIR/backup_info.txt"
+    else
+        echo "  Aucune base de données trouvée à sauvegarder"
+        rmdir "$BACKUP_DIR" 2>/dev/null
+    fi
+    echo ""
+}
+
+# Sauvegarder les bases de données avant toute opération
+backup_databases
+
 # Récupérer la dernière version du code depuis Git
 echo "Récupération de la dernière version du code..."
 if git status >/dev/null 2>&1; then
@@ -22,6 +65,27 @@ else
     echo "⚠️  Ce répertoire n'est pas un dépôt Git, pas de mise à jour automatique"
 fi
 echo ""
+
+# Vérifier si la configuration de persistance existe
+if [ -f "$CURRENT_DIR/start_with_persistence.rb" ] && [ -f "$CURRENT_DIR/config/database_config.rb" ]; then
+    echo " Configuration de persistance détectée..."
+    echo "Voulez-vous utiliser la configuration de persistance? (y/N)"
+    read -t 10 -r use_persistence
+    
+    if [[ $use_persistence =~ ^[Yy]$ ]]; then
+        echo " Démarrage avec la configuration de persistance..."
+        # Arrêter le serveur actuel s'il existe
+        pkill -f "ruby.*start_with_persistence.rb" 2>/dev/null
+        pkill -f "puma" 2>/dev/null
+        sleep 2
+        
+        # Démarrer avec la persistance
+        ruby start_with_persistence.rb
+        exit 0
+    else
+        echo " Utilisation de la configuration Docker standard..."
+    fi
+fi
 
 docker rm -f hermes_container 2>/dev/null
 

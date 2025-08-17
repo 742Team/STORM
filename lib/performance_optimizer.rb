@@ -143,14 +143,9 @@ class PerformanceOptimizer
   
   # Pool de connexions DB optimisé
   def with_db_connection(&block)
+    require_relative '../config/database_config'
     @db_pool ||= ConnectionPool.new(size: 25, timeout: 5) do
-      db = SQLite3::Database.new('chat_app.db')
-      db.execute('PRAGMA journal_mode=WAL')
-      db.execute('PRAGMA synchronous=NORMAL')
-      db.execute('PRAGMA cache_size=10000')
-      db.execute('PRAGMA temp_store=MEMORY')
-      db.execute('PRAGMA mmap_size=268435456') # 256MB
-      db
+      DatabaseConfig.get_connection
     end
     
     @db_pool.with(&block)

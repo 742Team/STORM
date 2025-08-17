@@ -112,13 +112,12 @@ class ChatController
 
   def setup_database
     begin
-      # Ensure the database directory exists
-      db_path = ENV['DB_PATH'] || 'chat_app.db'
-      db_dir = File.dirname(db_path)
-      FileUtils.mkdir_p(db_dir) unless db_dir == '.' || File.directory?(db_dir)
+      # Utiliser la configuration centralisée de la base de données
+      require_relative '../../config/database_config'
+      DatabaseConfig.setup_database
       
-      # Create the database file if it doesn't exist
-      db = db_connection
+      # Utiliser la connexion centralisée
+      db = DatabaseConfig.get_connection
       
       # Create tables with proper error handling
       create_users_table(db)
@@ -423,16 +422,9 @@ class ChatController
   end
 
   def db_connection
-    db_path = ENV['DB_PATH'] || 'chat_app.db'
-    db = SQLite3::Database.new(db_path)
-    
-    # Set timeout to wait for locks to clear (5000ms = 5 seconds)
-    db.busy_timeout = 5000
-    
-    # Enable WAL mode for better concurrency
-    db.execute("PRAGMA journal_mode = WAL;")
-    
-    return db
+    # Utiliser la configuration centralisée de la base de données
+    require_relative '../../config/database_config'
+    DatabaseConfig.get_connection
   end
 
   def compress_file(file_path)

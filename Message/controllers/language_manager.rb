@@ -278,15 +278,8 @@ class LanguageManager
   end
 
   def db_connection
-    db_path = ENV['DB_PATH'] || 'chat_app.db'
-    db = SQLite3::Database.new(db_path)
-
-    # Set timeout to wait for locks to clear
-    db.busy_timeout = 5000
-
-    # Enable WAL mode for better concurrency
-    db.execute("PRAGMA journal_mode = WAL;")
-
-    return db
+    # Utiliser la configuration centralisée de la base de données
+    require_relative '../../config/database_config'
+    DatabaseConfig.get_connection
   end
 end

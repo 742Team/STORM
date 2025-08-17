@@ -1,12 +1,16 @@
 # config/database_pool.rb
 require 'sqlite3'
 require 'thread'
+require_relative 'database_config'
 
 class DatabasePool
   def initialize(size = 10)
     @size = size
     @connections = Queue.new
     @mutex = Mutex.new
+    
+    # Initialiser la base de données avant de créer les connexions
+    DatabaseConfig.setup_database
     
     @size.times do
       @connections << create_connection
@@ -25,7 +29,7 @@ class DatabasePool
   private
   
   def create_connection
-    SQLite3::Database.new('storm.db')
+    DatabaseConfig.get_connection
   end
 end
 

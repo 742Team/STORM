@@ -27,7 +27,7 @@ class OptimizedStarter
   private
   
   def setup_environment
-    puts "\n🔧 Setting up optimized environment...".blue
+    puts "\nSetting up optimized environment...".blue
     
     # Variables d'environnement pour les performances
     ENV['RACK_ENV'] = 'production'
@@ -50,7 +50,7 @@ class OptimizedStarter
     ENV['PUMA_MAX_THREADS'] = '50'
     ENV['PORT'] = '3630'
     
-    puts "  ✅ Environment variables configured".green
+    puts "Environment variables configured".green
   end
   
   def optimize_ruby_settings
@@ -62,13 +62,13 @@ class OptimizedStarter
       
       # Compactage si disponible (Ruby 2.7+)
       if GC.respond_to?(:compact)
-        puts "  🗜️  Compacting memory..."
+        puts "Compacting memory..."
         GC.compact
       end
       
       # Configuration des statistiques GC
       if GC.respond_to?(:stat)
-        puts "  📊 GC stats enabled"
+        puts "GC stats enabled"
       end
       
       GC.enable # Réactiver
@@ -76,10 +76,10 @@ class OptimizedStarter
     
     # Optimisations spécifiques à MRI Ruby
     if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'ruby'
-      puts "  🔥 MRI Ruby optimizations applied"
+      puts "MRI Ruby optimizations applied"
     end
     
-    puts "  ✅ Ruby optimizations complete".green
+    puts "Ruby optimizations complete".green
   end
   
   def setup_directories
@@ -89,14 +89,14 @@ class OptimizedStarter
     
     directories.each do |dir|
       FileUtils.mkdir_p(dir) unless Dir.exist?(dir)
-      puts "  📂 Created: #{dir}"
+      puts "📂 Created: #{dir}"
     end
     
-    puts "  ✅ Directories ready".green
+    puts "Directories ready".green
   end
   
   def install_dependencies
-    puts "\n📦 Checking dependencies...".blue
+    puts "\n Checking dependencies...".blue
     
     # Vérifier si Bundler est installé
     unless system('which bundle > /dev/null 2>&1')
@@ -105,7 +105,7 @@ class OptimizedStarter
     end
     
     # Installer les gems avec optimisations
-    puts "  📥 Installing optimized gems..."
+    puts "Installing optimized gems..."
     
     bundle_config = [
       'bundle config set --local deployment false',
@@ -118,20 +118,20 @@ class OptimizedStarter
     bundle_config.each { |cmd| system(cmd) }
     
     if system('bundle check > /dev/null 2>&1')
-      puts "  ✅ Dependencies already satisfied".green
+      puts "Dependencies already satisfied".green
     else
-      puts "  📥 Installing missing dependencies..."
+      puts "Installing missing dependencies..."
       if system('bundle install --quiet')
-        puts "  ✅ Dependencies installed".green
+        puts "Dependencies installed".green
       else
-        puts "  ❌ Failed to install dependencies".red
+        puts "Failed to install dependencies".red
         exit 1
       end
     end
   end
   
   def configure_system
-    puts "\n⚙️  Configuring system optimizations...".blue
+    puts "\n Configuring system optimizations...".blue
     
     # Configuration des limites système (si possible)
     configure_limits
@@ -142,11 +142,11 @@ class OptimizedStarter
     # Configuration de la base de données
     setup_database
     
-    puts "  ✅ System configuration complete".green
+    puts "  System configuration complete".green
   end
   
   def configure_limits
-    puts "  🔧 Configuring system limits..."
+    puts "Configuring system limits..."
     
     # Ces configurations nécessitent des privilèges système
     # Elles sont documentées pour l'administrateur système
@@ -160,11 +160,11 @@ class OptimizedStarter
     ]
     
     File.write('SYSTEM_LIMITS.txt', limits_info.join("\n"))
-    puts "  📝 System limits documentation created"
+    puts " System limits documentation created"
   end
   
   def preload_libraries
-    puts "  📚 Preloading critical libraries..."
+    puts " Preloading critical libraries..."
     
     critical_libs = [
       'concurrent-ruby',
@@ -178,7 +178,7 @@ class OptimizedStarter
     critical_libs.each do |lib|
       begin
         require lib
-        puts "    ✅ #{lib}"
+        puts "    #{lib}"
       rescue LoadError
         puts "    ⚠️  #{lib} (optional)".yellow
       end
@@ -186,32 +186,20 @@ class OptimizedStarter
   end
   
   def setup_database
-    puts "  🗄️  Setting up optimized database..."
+    puts " Setting up optimized database..."
     
     begin
       require 'sqlite3'
+      require_relative 'config/database_config'
       
-      # Créer le fichier de base de données s'il n'existe pas
-      db_file = 'chat_app.db'
-      unless File.exist?(db_file)
-        db = SQLite3::Database.new(db_file)
-        
-        # Configuration SQLite pour les performances
-        optimizations = [
-          "PRAGMA journal_mode = WAL",
-          "PRAGMA synchronous = NORMAL",
-          "PRAGMA cache_size = 10000",
-          "PRAGMA temp_store = MEMORY",
-          "PRAGMA mmap_size = 268435456",
-          "PRAGMA optimize"
-        ]
-        
-        optimizations.each { |pragma| db.execute(pragma) }
+      # Utiliser la configuration centralisée de la base de données
+      DatabaseConfig.setup_database
+      puts "[OPTIMIZED] Base de données configurée avec persistance"
         
         db.close
-        puts "    ✅ Database optimized"
+        puts "     Database optimized"
       else
-        puts "    ✅ Database already exists"
+        puts "    Database already exists"
       end
     rescue LoadError
       puts "    ⚠️  SQLite3 not available, skipping database setup".yellow
@@ -219,14 +207,14 @@ class OptimizedStarter
   end
   
   def start_server
-    puts "\n🚀 Starting ultra-fast WebSocket server...".blue
+    puts "\n Starting ultra-fast WebSocket server...".blue
     puts "=" * 60
     
     # Afficher les informations de démarrage
     print_startup_info
     
     # Démarrer avec Puma
-    puts "\n🔥 Launching Puma with optimized configuration...".red.bold
+    puts "\n Launching Puma with optimized configuration...".red.bold
     
     puma_cmd = [
       'bundle exec puma',
@@ -235,19 +223,19 @@ class OptimizedStarter
       '--preload'
     ].join(' ')
     
-    puts "\n📡 Server will be available at:".green.bold
-    puts "   🌐 http://localhost:3630".cyan.bold
-    puts "   🔌 WebSocket: ws://localhost:3630/websocket".cyan.bold
+    puts "\n Server will be available at:".green.bold
+    puts "   http://localhost:3630".cyan.bold
+    puts "    WebSocket: ws://localhost:3630/websocket".cyan.bold
     
     puts "\n⚡ Performance features enabled:".yellow.bold
-    puts "   ✅ Ultra-fast caching system"
-    puts "   ✅ Concurrent message processing"
-    puts "   ✅ Optimized database operations"
-    puts "   ✅ Memory-efficient data structures"
-    puts "   ✅ Asynchronous I/O operations"
-    puts "   ✅ Thread-safe implementations"
+    puts "   Ultra-fast caching system"
+    puts "   Concurrent message processing"
+    puts "   Optimized database operations"
+    puts "   Memory-efficient data structures"
+    puts "   Asynchronous I/O operations"
+    puts "   Thread-safe implementations"
     
-    puts "\n🎯 Ready for maximum performance!".green.bold
+    puts "\n Ready for maximum performance!".green.bold
     puts "=" * 60
     
     # Exécuter Puma
@@ -255,7 +243,7 @@ class OptimizedStarter
   end
   
   def print_startup_info
-    puts "\n📊 System Information:".yellow
+    puts "\n System Information:".yellow
     puts "   Ruby Version: #{RUBY_VERSION}"
     puts "   Ruby Engine: #{defined?(RUBY_ENGINE) ? RUBY_ENGINE : 'MRI'}"
     puts "   Platform: #{RUBY_PLATFORM}"
@@ -278,12 +266,12 @@ end
 
 # Gestion des signaux pour un arrêt propre
 trap('INT') do
-  puts "\n\n🛑 Shutting down gracefully...".yellow
+  puts "\n\n Shutting down gracefully...".yellow
   exit 0
 end
 
 trap('TERM') do
-  puts "\n\n🛑 Terminating...".yellow
+  puts "\n\n Terminating...".yellow
   exit 0
 end
 
