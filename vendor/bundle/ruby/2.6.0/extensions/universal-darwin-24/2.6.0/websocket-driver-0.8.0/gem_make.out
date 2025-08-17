@@ -1,0 +1,16 @@
+current directory: /Users/dalm1-tt/Downloads/hermes-frontend-old/STORM/vendor/bundle/ruby/2.6.0/gems/websocket-driver-0.8.0/ext/websocket-driver
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/bin/ruby -I /System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0 -r ./siteconf20250817-67485-sh8lpd.rb extconf.rb
+creating Makefile
+
+current directory: /Users/dalm1-tt/Downloads/hermes-frontend-old/STORM/vendor/bundle/ruby/2.6.0/gems/websocket-driver-0.8.0/ext/websocket-driver
+make "DESTDIR=" clean
+
+current directory: /Users/dalm1-tt/Downloads/hermes-frontend-old/STORM/vendor/bundle/ruby/2.6.0/gems/websocket-driver-0.8.0/ext/websocket-driver
+make "DESTDIR="
+compiling websocket_mask.c
+linking shared-object websocket_mask.bundle
+ld: warning: search path '/AppleInternal/Library/BuildRoots/d187755d-b9a3-11ef-83e5-aabfac210453/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.3.Internal.sdk/usr/local/lib' not found
+
+current directory: /Users/dalm1-tt/Downloads/hermes-frontend-old/STORM/vendor/bundle/ruby/2.6.0/gems/websocket-driver-0.8.0/ext/websocket-driver
+make "DESTDIR=" install
+/usr/bin/install -c -m 0755 websocket_mask.bundle ./.gem.20250817-67485-1j70fe8

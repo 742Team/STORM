@@ -1,10 +1,29 @@
 source 'https://rubygems.org'
-gem 'sqlite3', '~> 1.6.0'  # Using a newer version that's compatible with Ruby 3.2
-gem 'sinatra', '~> 3.0'
-gem 'bcrypt'
-gem 'colorize'
+
+# Spécification de la version Ruby
+ruby '>= 2.6.0'
+
+# WebSocket et serveur
 gem 'websocket-driver'
+gem 'faye-websocket', '~> 0.11.0'
+gem 'puma', '~> 5.0' # Version compatible Ruby 2.6
+gem 'sinatra', '~> 2.2' # Version compatible Ruby 2.6
+gem 'rackup'
+
+# Sécurité
+gem 'bcrypt', '~> 3.1'
+
+# Optimisations de performance (gems pures Ruby)
+gem 'concurrent-ruby', '~> 1.1' # Threading et structures thread-safe
+gem 'json' # JSON natif Ruby
+
+# Traitement d'images et fichiers
+gem 'mini_magick', '~> 4.11'
+
+# Utilitaires
+gem 'colorize', '~> 0.8'
 gem 'webrick'
 gem 'rack'
-gem 'mini_magick'  # For image processing
-gem 'taglib-ruby', '~> 1.1.0'
+
+# Monitoring et debugging (optionnel)
+gem 'benchmark-ips'

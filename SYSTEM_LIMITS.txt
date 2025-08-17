@@ -1,0 +1,5 @@
+# Add to /etc/security/limits.conf for optimal performance:
+# * soft nofile 65536
+# * hard nofile 65536
+# * soft nproc 32768
+# * hard nproc 32768

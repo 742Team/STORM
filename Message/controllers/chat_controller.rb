@@ -1,10 +1,14 @@
 require 'sqlite3'
 require 'bcrypt'
+require 'concurrent-ruby'
+require 'digest'
 require_relative '../models/chat_room'
 require_relative './command_handler'
 require_relative './user_manager'
 require_relative './preference_manager'
 require_relative './language_manager'
+require_relative '../../lib/performance_optimizer'
+require_relative '../../lib/ultra_fast_cache'
 require 'singleton'
 require 'fileutils'
 require 'mini_magick' # For image compression
@@ -53,7 +57,21 @@ class ChatController
   }
 
   def initialize
-    @chat_rooms = {}
+    @chat_rooms = Concurrent::Hash.new # Thread-safe hash
+    
+    # Optimisations de performance
+    @cache = UltraFastCache.instance
+    @optimizer = PerformanceOptimizer.instance
+    @message_buffer = Concurrent::Array.new
+    @stats = Concurrent::Hash.new(0)
+    
+    # Pool de threads pour les opérations asynchrones
+    @thread_pool = Concurrent::ThreadPoolExecutor.new(
+      min_threads: 5,
+      max_threads: 50,
+      max_queue: 1000,
+      fallback_policy: :caller_runs
+    )
     
     # Initialize language manager first
     @language_manager = LanguageManager.instance
@@ -62,7 +80,6 @@ class ChatController
     @preference_manager = PreferenceManager.new(self)
     
     # Break the circular dependency by deferring UserManager initialization
-    # We'll initialize it after the ChatController instance is fully created
     @user_manager = nil
     
     # Create command handler without UserManager for now
@@ -77,17 +94,20 @@ class ChatController
     # Set the user_manager in the preference_manager
     @preference_manager.set_user_manager(@user_manager)
     
-    # Setup database first
-    setup_database
+    # Setup database first avec optimisations
+    setup_database_optimized
     
     # Now that database is set up, initialize languages
     @language_manager.initialize_languages
     
-    # Load rooms from database
-    load_rooms_from_db
+    # Load rooms from database avec cache
+    load_rooms_from_db_cached
     
     # Create Main room if it doesn't exist
     create_room("Main") unless @chat_rooms.key?("Main")
+    
+    # Démarrer les tâches de maintenance
+    start_maintenance_tasks
   end
 
   def setup_database
@@ -126,6 +146,124 @@ class ChatController
     rescue => ex
       puts translate('database_init_error', nil, [ex.message])
     end
+  end
+  
+  # Version optimisée de setup_database
+  def setup_database_optimized
+    @thread_pool.post do
+      begin
+        # Configuration SQLite ultra-rapide
+        db_path = ENV['DB_PATH'] || 'chat_app.db'
+        db_dir = File.dirname(db_path)
+        FileUtils.mkdir_p(db_dir) unless db_dir == '.' || File.directory?(db_dir)
+        
+        db = db_connection
+        
+        # Optimisations SQLite pour la performance
+        db.execute("PRAGMA journal_mode = WAL")
+        db.execute("PRAGMA synchronous = NORMAL")
+        db.execute("PRAGMA cache_size = 10000")
+        db.execute("PRAGMA temp_store = MEMORY")
+        db.execute("PRAGMA mmap_size = 268435456") # 256MB
+        
+        # Création des tables en parallèle
+        futures = []
+        futures << Concurrent::Future.execute { create_users_table(db) }
+        futures << Concurrent::Future.execute { create_preferences_table(db) }
+        futures << Concurrent::Future.execute { create_rooms_table(db) }
+        
+        # Attendre la completion
+        futures.each(&:wait)
+        
+        setup_friends_tables
+        
+        # Table des traductions avec index
+        db.execute <<-SQL
+          CREATE TABLE IF NOT EXISTS translations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            language TEXT NOT NULL,
+            key TEXT NOT NULL,
+            value TEXT NOT NULL,
+            UNIQUE(language, key)
+          );
+        SQL
+        
+        # Index pour les performances
+        db.execute("CREATE INDEX IF NOT EXISTS idx_translations_lang_key ON translations(language, key)")
+        
+        db.close
+        
+        @preference_manager.create_room_themes_table if @preference_manager
+        
+        puts "✅ Database optimized successfully".green
+      rescue => ex
+        puts "❌ Database optimization error: #{ex.message}".red
+      end
+    end
+  end
+  
+  # Version optimisée du chargement des salles
+  def load_rooms_from_db_cached
+    @thread_pool.post do
+      begin
+        # Vérifier le cache d'abord
+        cached_rooms = @cache.get_cached_rooms
+        if cached_rooms && !cached_rooms.empty?
+          cached_rooms.each do |room_data|
+            room = ChatRoom.new(room_data[:name], room_data[:password], room_data[:creator])
+            room.controller = self
+            room.created_at = Time.parse(room_data[:created_at]) if room_data[:created_at]
+            @chat_rooms[room_data[:name]] = room
+          end
+          puts "✅ Loaded #{cached_rooms.size} rooms from cache".green
+          return
+        end
+        
+        # Sinon charger depuis la DB
+        db = db_connection
+        rooms = db.execute("SELECT name, password, creator, created_at FROM rooms")
+        
+        rooms_data = []
+        rooms.each do |row|
+          name, password, creator, created_at = row
+          room = ChatRoom.new(name, password, creator)
+          room.controller = self
+          room.created_at = Time.parse(created_at) if created_at
+          @chat_rooms[name] = room
+          
+          rooms_data << {
+            name: name,
+            password: password,
+            creator: creator,
+            created_at: created_at
+          }
+        end
+        
+        # Mettre en cache
+        @cache.cache_rooms(rooms_data)
+        
+        db.close
+        puts "✅ Loaded #{rooms.size} rooms from database".green
+      rescue => ex
+        puts "❌ Room loading error: #{ex.message}".red
+      end
+    end
+  end
+  
+  # Démarrer les tâches de maintenance
+  def start_maintenance_tasks
+    # Nettoyage périodique du cache
+    @maintenance_timer = Concurrent::TimerTask.new(execution_interval: 300) do # 5 minutes
+      @cache.cleanup_expired_data
+      @optimizer.optimize_memory
+      
+      # Statistiques
+      active_rooms = @chat_rooms.size
+      total_clients = @chat_rooms.values.sum { |room| room.clients.size }
+      puts "📊 Stats: #{active_rooms} rooms, #{total_clients} clients".blue
+    end
+    
+    @maintenance_timer.execute
   end
 
   def create_users_table(db)
@@ -177,10 +315,69 @@ class ChatController
   def handle_message(driver, chat_room, username, message)
     message = message.force_encoding('UTF-8')
     
+    # Statistiques de performance
+    @stats[:messages_processed] += 1
+    start_time = Time.now.to_f
+    
+    # Cache du message pour éviter les doublons
+    message_id = Digest::MD5.hexdigest("#{username}:#{message}:#{Time.now.to_i}")
+    
     if message.start_with?('/')
-      return @command_handler.handle_command(message, driver, chat_room, username)
+      # Traitement asynchrone des commandes
+      @thread_pool.post do
+        begin
+          result = @command_handler.handle_command(message, driver, chat_room, username)
+          
+          # Mise à jour du cache utilisateur
+          @cache.update_user_activity(username, 'command', message)
+          
+          # Statistiques
+          processing_time = Time.now.to_f - start_time
+          @stats[:avg_command_time] = (@stats[:avg_command_time] + processing_time) / 2
+          
+          result
+        rescue => e
+          puts "❌ Command processing error: #{e.message}".red
+          nil
+        end
+      end
     else
-      chat_room.broadcast_message(message, username)
+      # Traitement ultra-rapide des messages normaux
+      @thread_pool.post do
+        begin
+          # Vérification anti-spam avec cache
+          unless @cache.is_spam_message?(username, message)
+            # Compression du message si nécessaire
+            compressed_message = message.length > 100 ? @cache.compress_data(message) : message
+            
+            # Broadcast optimisé
+            chat_room.broadcast_message_optimized(compressed_message, username)
+            
+            # Mise à jour du cache
+            @cache.cache_message(chat_room.name, username, message, Time.now.to_f)
+            @cache.update_user_activity(username, 'message', message)
+            
+            # Buffer pour les messages récents
+            @message_buffer << {
+              room: chat_room.name,
+              username: username,
+              message: message,
+              timestamp: Time.now.to_f,
+              id: message_id
+            }
+            
+            # Nettoyer le buffer si trop plein
+            @message_buffer.shift if @message_buffer.size > 1000
+            
+            # Statistiques
+            processing_time = Time.now.to_f - start_time
+            @stats[:avg_message_time] = (@stats[:avg_message_time] + processing_time) / 2
+          end
+        rescue => e
+          puts "❌ Message processing error: #{e.message}".red
+        end
+      end
+      
       return nil
     end
   end

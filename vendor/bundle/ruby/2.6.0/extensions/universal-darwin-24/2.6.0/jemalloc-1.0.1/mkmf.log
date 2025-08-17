@@ -1,0 +1,175 @@
+"tar vjxf jemalloc-3.4.0.tar.bz2"
+x jemalloc-3.4.0/
+x jemalloc-3.4.0/.gitignore
+x jemalloc-3.4.0/COPYING
+x jemalloc-3.4.0/ChangeLog
+x jemalloc-3.4.0/INSTALL
+x jemalloc-3.4.0/Makefile.in
+x jemalloc-3.4.0/README
+x jemalloc-3.4.0/autogen.sh
+x jemalloc-3.4.0/bin/
+x jemalloc-3.4.0/config.guess
+x jemalloc-3.4.0/config.stamp.in
+x jemalloc-3.4.0/config.sub
+x jemalloc-3.4.0/configure.ac
+x jemalloc-3.4.0/doc/
+x jemalloc-3.4.0/include/
+x jemalloc-3.4.0/install-sh
+x jemalloc-3.4.0/src/
+x jemalloc-3.4.0/test/
+x jemalloc-3.4.0/VERSION
+x jemalloc-3.4.0/configure
+x jemalloc-3.4.0/test/ALLOCM_ARENA.c
+x jemalloc-3.4.0/test/ALLOCM_ARENA.exp
+x jemalloc-3.4.0/test/aligned_alloc.c
+x jemalloc-3.4.0/test/aligned_alloc.exp
+x jemalloc-3.4.0/test/allocated.c
+x jemalloc-3.4.0/test/allocated.exp
+x jemalloc-3.4.0/test/allocm.c
+x jemalloc-3.4.0/test/allocm.exp
+x jemalloc-3.4.0/test/bitmap.c
+x jemalloc-3.4.0/test/bitmap.exp
+x jemalloc-3.4.0/test/jemalloc_test.h.in
+x jemalloc-3.4.0/test/mremap.c
+x jemalloc-3.4.0/test/mremap.exp
+x jemalloc-3.4.0/test/posix_memalign.c
+x jemalloc-3.4.0/test/posix_memalign.exp
+x jemalloc-3.4.0/test/rallocm.c
+x jemalloc-3.4.0/test/rallocm.exp
+x jemalloc-3.4.0/test/thread_arena.c
+x jemalloc-3.4.0/test/thread_arena.exp
+x jemalloc-3.4.0/test/thread_tcache_enabled.c
+x jemalloc-3.4.0/test/thread_tcache_enabled.exp
+x jemalloc-3.4.0/src/arena.c
+x jemalloc-3.4.0/src/atomic.c
+x jemalloc-3.4.0/src/base.c
+x jemalloc-3.4.0/src/bitmap.c
+x jemalloc-3.4.0/src/chunk.c
+x jemalloc-3.4.0/src/chunk_dss.c
+x jemalloc-3.4.0/src/chunk_mmap.c
+x jemalloc-3.4.0/src/ckh.c
+x jemalloc-3.4.0/src/ctl.c
+x jemalloc-3.4.0/src/extent.c
+x jemalloc-3.4.0/src/hash.c
+x jemalloc-3.4.0/src/huge.c
+x jemalloc-3.4.0/src/jemalloc.c
+x jemalloc-3.4.0/src/mb.c
+x jemalloc-3.4.0/src/mutex.c
+x jemalloc-3.4.0/src/prof.c
+x jemalloc-3.4.0/src/quarantine.c
+x jemalloc-3.4.0/src/rtree.c
+x jemalloc-3.4.0/src/stats.c
+x jemalloc-3.4.0/src/tcache.c
+x jemalloc-3.4.0/src/tsd.c
+x jemalloc-3.4.0/src/util.c
+x jemalloc-3.4.0/src/zone.c
+x jemalloc-3.4.0/include/jemalloc/
+x jemalloc-3.4.0/include/msvc_compat/
+x jemalloc-3.4.0/include/msvc_compat/inttypes.h
+x jemalloc-3.4.0/include/msvc_compat/stdbool.h
+x jemalloc-3.4.0/include/msvc_compat/stdint.h
+x jemalloc-3.4.0/include/msvc_compat/strings.h
+x jemalloc-3.4.0/include/jemalloc/internal/
+x jemalloc-3.4.0/include/jemalloc/jemalloc.h.in
+x jemalloc-3.4.0/include/jemalloc/jemalloc_defs.h.in
+x jemalloc-3.4.0/include/jemalloc/internal/arena.h
+x jemalloc-3.4.0/include/jemalloc/internal/atomic.h
+x jemalloc-3.4.0/include/jemalloc/internal/base.h
+x jemalloc-3.4.0/include/jemalloc/internal/bitmap.h
+x jemalloc-3.4.0/include/jemalloc/internal/chunk.h
+x jemalloc-3.4.0/include/jemalloc/internal/chunk_dss.h
+x jemalloc-3.4.0/include/jemalloc/internal/chunk_mmap.h
+x jemalloc-3.4.0/include/jemalloc/internal/ckh.h
+x jemalloc-3.4.0/include/jemalloc/internal/ctl.h
+x jemalloc-3.4.0/include/jemalloc/internal/extent.h
+x jemalloc-3.4.0/include/jemalloc/internal/hash.h
+x jemalloc-3.4.0/include/jemalloc/internal/huge.h
+x jemalloc-3.4.0/include/jemalloc/internal/jemalloc_internal.h.in
+x jemalloc-3.4.0/include/jemalloc/internal/mb.h
+x jemalloc-3.4.0/include/jemalloc/internal/mutex.h
+x jemalloc-3.4.0/include/jemalloc/internal/private_namespace.h
+x jemalloc-3.4.0/include/jemalloc/internal/prng.h
+x jemalloc-3.4.0/include/jemalloc/internal/prof.h
+x jemalloc-3.4.0/include/jemalloc/internal/ql.h
+x jemalloc-3.4.0/include/jemalloc/internal/qr.h
+x jemalloc-3.4.0/include/jemalloc/internal/quarantine.h
+x jemalloc-3.4.0/include/jemalloc/internal/rb.h
+x jemalloc-3.4.0/include/jemalloc/internal/rtree.h
+x jemalloc-3.4.0/include/jemalloc/internal/size_classes.sh
+x jemalloc-3.4.0/include/jemalloc/internal/stats.h
+x jemalloc-3.4.0/include/jemalloc/internal/tcache.h
+x jemalloc-3.4.0/include/jemalloc/internal/tsd.h
+x jemalloc-3.4.0/include/jemalloc/internal/util.h
+x jemalloc-3.4.0/doc/html.xsl.in
+x jemalloc-3.4.0/doc/jemalloc.xml.in
+x jemalloc-3.4.0/doc/manpages.xsl.in
+x jemalloc-3.4.0/doc/stylesheet.xsl
+x jemalloc-3.4.0/doc/jemalloc.html
+x jemalloc-3.4.0/doc/jemalloc.3
+x jemalloc-3.4.0/bin/jemalloc.sh.in
+x jemalloc-3.4.0/bin/pprof
+x jemalloc-3.4.0/bin/jemalloc.sh
+./configure
+checking for xsltproc... /usr/bin/xsltproc
+checking for gcc... gcc
+checking whether the C compiler works... yes
+checking for C compiler default output file name... a.out
+checking for suffix of executables... 
+checking whether we are cross compiling... no
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether gcc accepts -g... yes
+checking for gcc option to accept ISO C89... none needed
+checking whether compiler supports -std=gnu99... yes
+checking whether compiler supports -Wall... yes
+checking whether compiler supports -pipe... yes
+checking whether compiler supports -g3... yes
+checking how to run the C preprocessor... gcc -E
+checking for grep that handles long lines and -e... /usr/bin/grep
+checking for egrep... /usr/bin/grep -E
+checking for ANSI C header files... yes
+checking for sys/types.h... yes
+checking for sys/stat.h... yes
+checking for stdlib.h... yes
+checking for string.h... yes
+checking for memory.h... yes
+checking for strings.h... yes
+checking for inttypes.h... yes
+checking for stdint.h... yes
+checking for unistd.h... yes
+checking size of void *... 8
+checking size of int... 4
+checking size of long... 8
+checking size of intmax_t... 8
+checking build system type... arm-apple-darwin24.3.0
+checking host system type... arm-apple-darwin24.3.0
+checking whether __attribute__ syntax is compilable... yes
+checking whether compiler supports -Werror... yes
+checking whether tls_model attribute is compilable... no
+checking for a BSD-compatible install... /usr/bin/install -c
+checking for ranlib... ranlib
+checking for ar... /usr/bin/ar
+checking for ld... /usr/bin/ld
+checking for autoconf... false
+checking for memalign... no
+checking for valloc... yes
+checking whether compiler supports -O3... yes
+checking whether compiler supports -funroll-loops... yes
+checking configured backtracing method... N/A
+checking for sbrk... yes
+checking whether utrace(2) is compilable... no
+checking whether valgrind is compilable... no
+checking STATIC_PAGE_SHIFT... 14
+checking pthread.h usability... yes
+checking pthread.h presence... yes
+checking for pthread.h... yes
+checking for pthread_create in -lpthread... yes
+checking for _malloc_thread_cleanup... no
+checking for _pthread_mutex_init_calloc_cb... no
+Forcing no TLS to avoid allocator/threading bootstrap issues
+checking whether a program using ffsl is compilable... yes
+checking whether atomic(9) is compilable... no
+checking whether Darwin OSAtomic*() is compilable... yes
+checking whether Darwin OSSpin*() is compilable... yes
+checking malloc zone version... unsupported
+configure: error: Unsupported malloc zone version

@@ -1,0 +1,16 @@
+current directory: /Users/dalm1-tt/Downloads/hermes-frontend-old/STORM/vendor/bundle/ruby/2.6.0/gems/fast_blank-1.0.1/ext/fast_blank
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/bin/ruby -I /System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0 -r ./siteconf20250817-63460-m3ljo7.rb extconf.rb
+creating Makefile
+
+current directory: /Users/dalm1-tt/Downloads/hermes-frontend-old/STORM/vendor/bundle/ruby/2.6.0/gems/fast_blank-1.0.1/ext/fast_blank
+make "DESTDIR=" clean
+
+current directory: /Users/dalm1-tt/Downloads/hermes-frontend-old/STORM/vendor/bundle/ruby/2.6.0/gems/fast_blank-1.0.1/ext/fast_blank
+make "DESTDIR="
+compiling fast_blank.c
+linking shared-object fast_blank.bundle
+ld: warning: search path '/AppleInternal/Library/BuildRoots/d187755d-b9a3-11ef-83e5-aabfac210453/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.3.Internal.sdk/usr/local/lib' not found
+
+current directory: /Users/dalm1-tt/Downloads/hermes-frontend-old/STORM/vendor/bundle/ruby/2.6.0/gems/fast_blank-1.0.1/ext/fast_blank
+make "DESTDIR=" install
+/usr/bin/install -c -m 0755 fast_blank.bundle ./.gem.20250817-63460-1xs420u

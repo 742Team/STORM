@@ -383,7 +383,7 @@ ld: warning: search path '/opt/homebrew/opt/sqlite/lib' not found
 ld: warning: search path '/AppleInternal/Library/BuildRoots/d187755d-b9a3-11ef-83e5-aabfac210453/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.3.Internal.sdk/usr/local/lib' not found
 Undefined symbols for architecture arm64:
   "_sqlite3_enable_load_extension", referenced from:
-      _t in conftest-b0dfa8.o
+      _t in conftest-81dc41.o
 ld: symbol(s) not found for architecture arm64
 clang: error: linker command failed with exit code 1 (use -v to see invocation)
 checked program was:
@@ -438,7 +438,7 @@ ld: warning: search path '/opt/homebrew/opt/sqlite/lib' not found
 ld: warning: search path '/AppleInternal/Library/BuildRoots/d187755d-b9a3-11ef-83e5-aabfac210453/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.3.Internal.sdk/usr/local/lib' not found
 Undefined symbols for architecture arm64:
   "_sqlite3_load_extension", referenced from:
-      _t in conftest-53fbc6.o
+      _t in conftest-5def37.o
 ld: symbol(s) not found for architecture arm64
 clang: error: linker command failed with exit code 1 (use -v to see invocation)
 checked program was:

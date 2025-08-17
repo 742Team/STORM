@@ -14,7 +14,7 @@ if git status >/dev/null 2>&1; then
     
     # Pull les modifications si disponibles
     if git pull origin "$current_branch" >/dev/null 2>&1; then
-        echo "✅ Code mis à jour avec succès"
+        echo "⚪️ Code mis à jour avec succès"
     else
         echo "⚠️  Aucune mise à jour disponible ou erreur lors du pull"
     fi

@@ -1,21 +1,34 @@
+require 'concurrent-ruby'
+require 'digest'
+require 'zlib'
+
 class ChatRoom
   attr_accessor :name, :password, :clients, :creator, :history, :banned_users, :client_colors
   attr_accessor :current_music_url, :current_music_user, :created_at
   attr_accessor :controller
   # Nouvelles propriétés pour les thèmes de salon
   attr_accessor :room_background, :room_text_color, :room_font
+  # Optimisations de performance
+  attr_accessor :message_cache, :client_stats, :last_activity
 
   def initialize(name, password=nil, creator=nil)
     @name = name
     @password = password
     @creator = creator
-    @clients = {}
-    @history = []
-    @banned_users = []
-    @client_colors = {}
+    
+    # Structures thread-safe pour les performances
+    @clients = Concurrent::Hash.new
+    @history = Concurrent::Array.new
+    @banned_users = Concurrent::Array.new
+    @client_colors = Concurrent::Hash.new
+    @message_cache = Concurrent::Hash.new
+    @client_stats = Concurrent::Hash.new
+    
     @current_music_url = nil
     @current_music_user = nil
     @created_at = nil
+    @last_activity = Time.now.to_f
+    
     # Don't access ChatController.instance here - it will be set from outside
     @controller = nil
     
@@ -23,6 +36,18 @@ class ChatRoom
     @room_background = nil
     @room_text_color = nil
     @room_font = nil
+    
+    # Pool de threads pour les opérations asynchrones
+    @thread_pool = Concurrent::ThreadPoolExecutor.new(
+      min_threads: 2,
+      max_threads: 20,
+      max_queue: 500,
+      fallback_policy: :caller_runs
+    )
+    
+    # Statistiques de performance
+    @stats = Concurrent::Hash.new(0)
+    @message_buffer = Concurrent::Array.new
   end
 
   def add_client(driver, username)
@@ -87,6 +112,80 @@ class ChatRoom
         driver.text(formatted_message)
       rescue IOError => e
         puts @controller.translate('message_send_error', nil, [e.message])
+      end
+    end
+  end
+  
+  # Version ultra-optimisée du broadcast
+  def broadcast_message_optimized(message, sender)
+    @last_activity = Time.now.to_f
+    @stats[:messages_sent] += 1
+    
+    # Traitement asynchrone ultra-rapide
+    @thread_pool.post do
+      begin
+        timestamp = (Time.now + 3600).strftime('%H:%M')
+        color = @client_colors[sender] || '#FFFFFF'
+        
+        # Décompression si nécessaire
+        if message.is_a?(String) && message.start_with?('COMPRESSED:')
+          message = Zlib::Inflate.inflate(Base64.decode64(message[11..-1]))
+        end
+        
+        escaped_message = escape_html(message)
+        formatted_message = "[#{timestamp}] <span style='color: #{color}'>#{sender}</span> #{escaped_message}"
+        
+        # Cache du message
+        message_id = Digest::MD5.hexdigest("#{sender}:#{message}:#{timestamp}")
+        @message_cache[message_id] = {
+          formatted: formatted_message,
+          sender: sender,
+          timestamp: @last_activity,
+          raw: message
+        }
+        
+        # Ajouter à l'historique avec limite
+        @history << formatted_message
+        @history.shift if @history.size > 1000 # Limiter l'historique
+        
+        # Buffer pour les messages récents
+        @message_buffer << {
+          id: message_id,
+          message: formatted_message,
+          timestamp: @last_activity
+        }
+        @message_buffer.shift if @message_buffer.size > 100
+        
+        # Broadcast parallèle ultra-rapide
+        client_futures = []
+        @clients.each do |username, driver|
+          client_futures << Concurrent::Future.execute do
+            begin
+              # Mise à jour des stats client
+              @client_stats[username] ||= { messages_received: 0, last_seen: 0 }
+              @client_stats[username][:messages_received] += 1
+              @client_stats[username][:last_seen] = @last_activity
+              
+              # Envoi optimisé
+              driver.text(formatted_message)
+            rescue IOError, Errno::EPIPE => e
+              # Client déconnecté, le supprimer
+              @clients.delete(username)
+              puts "🔌 Client #{username} disconnected from #{@name}".yellow
+            rescue => e
+              puts "❌ Broadcast error to #{username}: #{e.message}".red
+            end
+          end
+        end
+        
+        # Attendre que tous les envois soient terminés (avec timeout)
+        client_futures.each { |f| f.wait(0.1) rescue nil }
+        
+        # Nettoyage périodique
+        cleanup_old_data if @stats[:messages_sent] % 100 == 0
+        
+      rescue => e
+        puts "❌ Broadcast optimization error: #{e.message}".red
       end
     end
   end
@@ -327,6 +426,52 @@ class ChatRoom
     end
   end
 
+  # Méthodes d'optimisation de performance
+  def cleanup_old_data
+    current_time = Time.now.to_f
+    
+    # Nettoyer les anciens messages du cache (plus de 1 heure)
+    @message_cache.delete_if { |_, data| current_time - data[:timestamp] > 3600 }
+    
+    # Nettoyer les stats des clients inactifs (plus de 30 minutes)
+    @client_stats.delete_if { |_, stats| current_time - stats[:last_seen] > 1800 }
+    
+    # Nettoyer le buffer des messages (garder seulement les 50 derniers)
+    while @message_buffer.size > 50
+      @message_buffer.shift
+    end
+    
+    puts "🧹 Cleaned up old data for room #{@name}".blue if @stats[:messages_sent] % 500 == 0
+  end
+  
+  def get_performance_stats
+    {
+      name: @name,
+      clients: @clients.size,
+      messages_sent: @stats[:messages_sent],
+      cached_messages: @message_cache.size,
+      buffer_size: @message_buffer.size,
+      last_activity: @last_activity,
+      history_size: @history.size
+    }
+  end
+  
+  def optimize_memory
+    # Forcer le garbage collection
+    GC.start
+    
+    # Compacter l'historique si trop volumineux
+    if @history.size > 500
+      # Garder seulement les 300 derniers messages
+      @history = @history.last(300)
+    end
+    
+    # Nettoyer les caches
+    cleanup_old_data
+    
+    puts "🚀 Memory optimized for room #{@name}".green
+  end
+  
   # Ajouter cette méthode à la classe ChatRoom
   def change_username(old_username, new_username)
     if @clients.key?(old_username)

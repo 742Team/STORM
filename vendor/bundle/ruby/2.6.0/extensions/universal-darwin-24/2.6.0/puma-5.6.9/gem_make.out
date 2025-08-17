@@ -1,0 +1,22 @@
+current directory: /Users/dalm1-tt/Downloads/hermes-frontend-old/STORM/vendor/bundle/ruby/2.6.0/gems/puma-5.6.9/ext/puma_http11
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/bin/ruby -I /System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0 -r ./siteconf20250817-67485-1yfc7fc.rb extconf.rb
+checking for BIO_read() in -lcrypto... no
+checking for BIO_read() in -llibeay32... no
+** Puma will be compiled without SSL support
+creating Makefile
+
+current directory: /Users/dalm1-tt/Downloads/hermes-frontend-old/STORM/vendor/bundle/ruby/2.6.0/gems/puma-5.6.9/ext/puma_http11
+make "DESTDIR=" clean
+
+current directory: /Users/dalm1-tt/Downloads/hermes-frontend-old/STORM/vendor/bundle/ruby/2.6.0/gems/puma-5.6.9/ext/puma_http11
+make "DESTDIR="
+compiling http11_parser.c
+compiling mini_ssl.c
+compiling puma_http11.c
+linking shared-object puma/puma_http11.bundle
+ld: warning: search path '/AppleInternal/Library/BuildRoots/d187755d-b9a3-11ef-83e5-aabfac210453/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.3.Internal.sdk/usr/local/libressl-by-deployment-target/13.0/lib' not found
+ld: warning: search path '/AppleInternal/Library/BuildRoots/d187755d-b9a3-11ef-83e5-aabfac210453/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.3.Internal.sdk/usr/local/lib' not found
+
+current directory: /Users/dalm1-tt/Downloads/hermes-frontend-old/STORM/vendor/bundle/ruby/2.6.0/gems/puma-5.6.9/ext/puma_http11
+make "DESTDIR=" install
+/usr/bin/install -c -m 0755 puma_http11.bundle ./.gem.20250817-67485-3luab9/puma
