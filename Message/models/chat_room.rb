@@ -319,6 +319,18 @@ class ChatRoom
     ['Main', 'General', 'users'].include?(@name)
   end
 
+  # Vérifier si l'utilisateur est connecté (authentifié)
+  def is_user_logged_in?(username)
+    return false if username.nil? || username.empty?
+    
+    # Vérifier si l'utilisateur a un ID dans la base de données
+    user_manager = @controller&.instance_variable_get(:@user_manager)
+    return false unless user_manager
+    
+    user_id = user_manager.get_user_id(username)
+    !user_id.nil?
+  end
+
   # Charger le thème du salon depuis la base de données
   def load_room_theme
     return unless @controller
