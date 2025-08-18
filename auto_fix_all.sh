@@ -21,15 +21,15 @@ print_step() {
 }
 
 print_success() {
-    echo -e "${GREEN}✅ $1${NC}"
+    echo -e "${GREEN} $1${NC}"
 }
 
 print_error() {
-    echo -e "${RED}❌ $1${NC}"
+    echo -e "${RED} $1${NC}"
 }
 
 print_info() {
-    echo -e "${BLUE}ℹ️  $1${NC}"
+    echo -e "${BLUE}ℹ  $1${NC}"
 }
 
 print_warning() {
@@ -95,7 +95,7 @@ print_step "2" "MISE À JOUR DEPUIS GIT"
 print_info "Récupération des dernières modifications..."
 if git fetch origin >/dev/null 2>&1; then
     print_success "Fetch réussi"
-    
+
     # Vérifier s'il y a des mises à jour
     if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/$current_branch)" ]; then
         print_info "Mises à jour disponibles, application..."
@@ -149,7 +149,7 @@ print_step "4" "APPLICATION DES CORRECTIONS"
 
 if [ $ERRORS -gt 0 ]; then
     print_info "$ERRORS erreur(s) détectée(s), application des corrections..."
-    
+
     # Exécuter le script de correction
     if [ -f "fix_vps_permissions.sh" ]; then
         print_info "Exécution du script de correction..."
@@ -174,14 +174,14 @@ storm_processes=$(ps aux | grep -v grep | grep srv_message | wc -l)
 if [ $storm_processes -gt 0 ]; then
     print_info "$storm_processes processus STORM détecté(s)"
     print_info "Redémarrage des processus..."
-    
+
     # Arrêter les processus
     pkill -f srv_message.rb >/dev/null 2>&1
     pkill -f "ruby.*srv_message" >/dev/null 2>&1
-    
+
     # Attendre un peu
     sleep 3
-    
+
     # Vérifier qu'ils sont bien arrêtés
     remaining=$(ps aux | grep -v grep | grep srv_message | wc -l)
     if [ $remaining -eq 0 ]; then
@@ -256,33 +256,33 @@ fi
 
 print_step "7" "RÉSUMÉ FINAL"
 
-echo -e "\n${BLUE}📊 STATISTIQUES DE LA RÉSOLUTION :${NC}"
+echo -e "\n${BLUE} STATISTIQUES DE LA RÉSOLUTION :${NC}"
 echo "----------------------------------"
 print_info "Erreurs détectées: $ERRORS"
 print_info "Avertissements: $WARNINGS"
 print_info "Corrections appliquées: $FIXES_APPLIED"
 
-echo -e "\n${BLUE}🎯 RÉSULTAT FINAL :${NC}"
+echo -e "\n${BLUE} RÉSULTAT FINAL :${NC}"
 echo "-------------------"
 
 if [ $ERRORS -eq 0 ]; then
-    echo -e "${GREEN}🎉 RÉSOLUTION RÉUSSIE !${NC}"
+    echo -e "${GREEN} RÉSOLUTION RÉUSSIE !${NC}"
     echo -e "${GREEN}Le système est maintenant opérationnel.${NC}"
     echo ""
-    echo -e "${BLUE}📋 PROCHAINES ÉTAPES :${NC}"
+    echo -e "${BLUE} PROCHAINES ÉTAPES :${NC}"
     echo "1. Testez avec un utilisateur admin (DALM1) :"
     echo "   /background https://example.com/test.jpg"
     echo "2. Testez avec un utilisateur normal dans un salon système"
     echo "3. Vérifiez que les messages d'erreur s'affichent correctement"
     echo ""
-    echo -e "${BLUE}🌐 TEST FRONTEND :${NC}"
+    echo -e "${BLUE} TEST FRONTEND :${NC}"
     echo "Ouvrez la console du navigateur (F12) et exécutez :"
     echo "debug_frontend_auth.js"
 else
     echo -e "${RED}⚠️  RÉSOLUTION PARTIELLE${NC}"
     echo -e "${RED}$ERRORS problème(s) persistent.${NC}"
     echo ""
-    echo -e "${BLUE}📋 ACTIONS RECOMMANDÉES :${NC}"
+    echo -e "${BLUE}⚠️  ACTIONS RECOMMANDÉES :${NC}"
     echo "1. Consultez GUIDE_RESOLUTION_COMPLETE.md"
     echo "2. Vérifiez les logs du serveur"
     echo "3. Exécutez manuellement fix_vps_permissions.sh"
@@ -297,5 +297,5 @@ echo "- debug_frontend_auth.js : Diagnostic frontend"
 echo "- GUIDE_RESOLUTION_COMPLETE.md : Guide complet"
 
 echo ""
-echo "✅ Résolution automatique terminée !"
+echo " Résolution automatique terminée !"
 echo "Temps d'exécution: $SECONDS secondes"

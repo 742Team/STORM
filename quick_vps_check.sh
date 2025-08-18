@@ -3,7 +3,7 @@
 # Script de vérification rapide pour diagnostiquer le problème VPS
 # Usage: bash quick_vps_check.sh
 
-echo "🚀 DIAGNOSTIC RAPIDE VPS - PERMISSIONS ADMINISTRATEUR"
+echo " DIAGNOSTIC RAPIDE VPS - PERMISSIONS ADMINISTRATEUR"
 echo "===================================================="
 
 # Couleurs pour l'affichage
@@ -16,14 +16,14 @@ NC='\033[0m' # No Color
 # Fonction pour afficher les résultats
 print_result() {
     if [ $1 -eq 0 ]; then
-        echo -e "${GREEN}✅ $2${NC}"
+        echo -e "${GREEN} $2${NC}"
     else
-        echo -e "${RED}❌ $2${NC}"
+        echo -e "${RED} $2${NC}"
     fi
 }
 
 print_info() {
-    echo -e "${BLUE}ℹ️  $1${NC}"
+    echo -e "${BLUE} $1${NC}"
 }
 
 print_warning() {
@@ -88,7 +88,7 @@ echo "--------------------------------------"
 # chat_room.rb
 if [ -f "Message/models/chat_room.rb" ]; then
     print_result 0 "chat_room.rb trouvé"
-    
+
     # Vérifier ADMIN_USERS
     if grep -q "ADMIN_USERS" "Message/models/chat_room.rb"; then
         admin_users=$(grep "ADMIN_USERS" "Message/models/chat_room.rb" | head -1)
@@ -96,20 +96,20 @@ if [ -f "Message/models/chat_room.rb" ]; then
     else
         print_result 1 "ADMIN_USERS non trouvé"
     fi
-    
+
     # Vérifier les méthodes
     if grep -q "def is_admin?" "Message/models/chat_room.rb"; then
         print_result 0 "Méthode is_admin? trouvée"
     else
         print_result 1 "Méthode is_admin? manquante"
     fi
-    
+
     if grep -q "def can_modify_room_theme?" "Message/models/chat_room.rb"; then
         print_result 0 "Méthode can_modify_room_theme? trouvée"
     else
         print_result 1 "Méthode can_modify_room_theme? manquante"
     fi
-    
+
     if grep -q "def system_room?" "Message/models/chat_room.rb"; then
         print_result 0 "Méthode system_room? trouvée"
     else
@@ -122,14 +122,14 @@ fi
 # background_command.rb
 if [ -f "Message/commands/Appearance/background_command.rb" ]; then
     print_result 0 "background_command.rb trouvé"
-    
+
     # Vérifier l'utilisation de can_modify_room_theme
     if grep -q "can_modify_room_theme" "Message/commands/Appearance/background_command.rb"; then
         print_result 0 "Utilisation de can_modify_room_theme? détectée"
     else
         print_result 1 "can_modify_room_theme? non utilisé"
     fi
-    
+
     # Vérifier le message d'erreur admin
     if grep -q "administrateurs peuvent modifier" "Message/commands/Appearance/background_command.rb"; then
         print_result 0 "Message d'erreur administrateur présent"
@@ -172,7 +172,7 @@ echo "------------------------"
 
 if command -v ruby >/dev/null 2>&1; then
     print_info "Version Ruby: $(ruby --version)"
-    
+
     # Test chat_room.rb
     if [ -f "Message/models/chat_room.rb" ]; then
         if ruby -c "Message/models/chat_room.rb" >/dev/null 2>&1; then
@@ -182,7 +182,7 @@ if command -v ruby >/dev/null 2>&1; then
             ruby -c "Message/models/chat_room.rb"
         fi
     fi
-    
+
     # Test background_command.rb
     if [ -f "Message/commands/Appearance/background_command.rb" ]; then
         if ruby -c "Message/commands/Appearance/background_command.rb" >/dev/null 2>&1; then
@@ -225,14 +225,14 @@ if [ $storm_processes -eq 0 ]; then
 fi
 
 if [ $problems -eq 0 ]; then
-    echo -e "${GREEN}✅ AUCUN PROBLÈME CRITIQUE DÉTECTÉ${NC}"
+    echo -e "${GREEN} AUCUN PROBLÈME CRITIQUE DÉTECTÉ${NC}"
     echo -e "${GREEN}Le système semble correctement configuré.${NC}"
     echo ""
     echo "Si le problème persiste, essayez :"
     echo "1. Redémarrer le serveur : pkill -f srv_message.rb && sleep 3 && ruby srv_message.rb &"
     echo "2. Tester avec un utilisateur admin (DALM1) : /background https://example.com/test.jpg"
 else
-    echo -e "${RED}❌ $problems PROBLÈME(S) CRITIQUE(S) DÉTECTÉ(S)${NC}"
+    echo -e "${RED} $problems PROBLÈME(S) CRITIQUE(S) DÉTECTÉ(S)${NC}"
     echo ""
     echo "Actions recommandées :"
     echo "1. Exécuter le script de correction : bash fix_vps_permissions.sh"
@@ -241,10 +241,10 @@ else
 fi
 
 echo ""
-echo -e "${BLUE}📋 SCRIPTS DISPONIBLES :${NC}"
+echo -e "${BLUE} SCRIPTS DISPONIBLES :${NC}"
 echo "- fix_vps_permissions.sh : Correction automatique"
 echo "- check_vps_permissions.sh : Diagnostic détaillé"
 echo "- GUIDE_RESOLUTION_COMPLETE.md : Guide complet"
 
 echo ""
-echo "✅ Diagnostic rapide terminé !"
+echo " Diagnostic rapide terminé !"
